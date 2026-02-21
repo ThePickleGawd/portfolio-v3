@@ -60,15 +60,15 @@ function SectionTitle({ label, title }: { label: string; title: string }) {
 
 export default function Experiment2Sections() {
   return (
-    <div className="relative overflow-hidden bg-[#04030a] text-white">
+    <div className="relative overflow-hidden bg-[#02030a] text-white">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-20 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[#8833ee]/20 blur-[130px]" />
-        <div className="absolute bottom-0 left-[-120px] h-[340px] w-[340px] rounded-full bg-[#2288ff]/20 blur-[120px]" />
+        <div className="absolute left-1/2 top-20 h-[380px] w-[380px] -translate-x-1/2 rounded-full bg-[#7f52ff]/16 blur-[130px]" />
+        <div className="absolute bottom-0 left-[-120px] h-[320px] w-[320px] rounded-full bg-[#2288ff]/14 blur-[120px]" />
       </div>
 
       <section className="relative mx-auto max-w-6xl px-6 pb-28 pt-24">
-        <div className="rounded-[36px] border border-white/10 bg-[linear-gradient(135deg,rgba(20,18,36,0.95),rgba(12,11,26,0.98))] p-10 shadow-[0_0_60px_rgba(136,51,238,0.15)] sm:p-14">
-          <p className="mb-4 text-center text-xs uppercase tracking-[0.55em] text-[#d6b7ff]/70">
+        <div className="rounded-[36px] border border-white/12 bg-[linear-gradient(145deg,rgba(11,15,32,0.95),rgba(10,9,23,0.98))] p-10 shadow-[0_0_58px_rgba(114,83,220,0.16)] sm:p-14">
+          <p className="mb-4 text-center text-xs uppercase tracking-[0.55em] text-[#cdbeff]/75">
             Domain Expansion
           </p>
           <h2 className="mx-auto max-w-4xl text-center font-[var(--font-syne)] text-5xl font-extrabold tracking-[-0.03em] text-[#f8efff] sm:text-7xl">
@@ -86,9 +86,9 @@ export default function Experiment2Sections() {
           {PROJECTS.map((project) => (
             <article
               key={project.title}
-              className="group rounded-3xl border border-white/10 bg-[linear-gradient(160deg,rgba(12,16,34,0.95),rgba(22,11,30,0.95))] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-[#aa66ff]/60 hover:shadow-[0_24px_70px_rgba(117,58,198,0.22)]"
+              className="group rounded-3xl border border-white/10 bg-[linear-gradient(160deg,rgba(10,16,35,0.96),rgba(20,11,28,0.96))] p-6 transition-all duration-500 hover:-translate-y-1 hover:border-[#81c6ff]/55 hover:shadow-[0_24px_70px_rgba(86,130,218,0.2)]"
             >
-              <div className="mb-5 h-44 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_20%_30%,rgba(91,174,255,0.4),transparent_45%),radial-gradient(circle_at_75%_75%,rgba(255,73,146,0.38),transparent_50%),linear-gradient(140deg,rgba(15,21,45,0.95),rgba(27,14,42,0.95))]" />
+              <div className="mb-5 h-44 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_20%_30%,rgba(94,182,255,0.4),transparent_45%),radial-gradient(circle_at_75%_75%,rgba(255,93,162,0.34),transparent_50%),linear-gradient(140deg,rgba(13,21,45,0.95),rgba(20,12,36,0.95))]" />
               <h3 className="mb-3 font-[var(--font-syne)] text-2xl font-bold text-[#eef3ff]">
                 {project.title}
               </h3>
@@ -97,7 +97,7 @@ export default function Experiment2Sections() {
                 {project.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-[#c28cff]/35 bg-[#a457ff]/10 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-[#dfc6ff]"
+                    className="rounded-full border border-[#87beff]/35 bg-[#5a9fff]/10 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-[#d2e8ff]"
                   >
                     {tag}
                   </span>
@@ -138,7 +138,7 @@ export default function Experiment2Sections() {
           {RESEARCH.map((item) => (
             <article
               key={item.title}
-              className="rounded-3xl border border-white/10 bg-[linear-gradient(170deg,rgba(13,14,28,0.98),rgba(20,10,30,0.98))] p-8"
+              className="rounded-3xl border border-white/10 bg-[linear-gradient(170deg,rgba(12,14,28,0.98),rgba(17,12,30,0.98))] p-8"
             >
               <h3 className="mb-3 font-[var(--font-syne)] text-2xl font-bold text-[#ebebff]">{item.title}</h3>
               <p className="text-sm leading-relaxed text-white/72">{item.body}</p>

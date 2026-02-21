@@ -276,6 +276,9 @@ export const energyWashShader = {
     uWashRadius: { value: 0.0 },
     uSwirlStrength: { value: 0.0 },
     uIntensity: { value: 0.0 },
+    uBlueCenter: { value: { x: 0.0, y: 0.0 } },
+    uRedCenter: { value: { x: 0.0, y: 0.0 } },
+    uSplit: { value: 0.0 },
     uTime: { value: 0.0 },
   },
 
@@ -294,6 +297,9 @@ export const energyWashShader = {
     uniform float uWashRadius;
     uniform float uSwirlStrength;
     uniform float uIntensity;
+    uniform vec2 uBlueCenter;
+    uniform vec2 uRedCenter;
+    uniform float uSplit;
     uniform float uTime;
 
     varying vec2 vUv;
@@ -315,60 +321,52 @@ export const energyWashShader = {
 
       vec2 centered = vUv - 0.5;
       float dist = length(centered);
-      float mixMotion = smoothstep(0.0, 1.0, uSwirlStrength);
-      vec2 drift = vec2(
-        uTime * (0.06 + mixMotion * 0.03),
-        -uTime * (0.05 + mixMotion * 0.04)
-      );
+      float split = clamp(uSplit, 0.0, 1.0);
+      float motion = smoothstep(0.0, 1.0, uSwirlStrength);
+      vec2 drift = vec2(uTime * 0.018, -uTime * 0.014) * (0.35 + motion * 0.65);
 
-      vec2 warpA = vec2(
-        fbm(vec3(centered * 3.0 + drift, 0.7)),
-        fbm(vec3(centered * 3.0 - drift, 2.2))
-      );
-      vec2 warpB = vec2(
-        fbm(vec3((centered + warpA * 0.22) * 5.4 + vec2(-uTime * 0.04, uTime * 0.08), 4.4)),
-        fbm(vec3((centered - warpA * 0.20) * 5.2 + vec2(uTime * 0.07, -uTime * 0.05), 7.1))
-      );
-      vec2 flow = centered + warpA * 0.24 + warpB * 0.14;
+      float softNoise = fbm(vec3(centered * 2.2 + drift, 0.8)) * 0.5 + 0.5;
+      float mixNoise = fbm(vec3(centered * 4.8 + drift * 1.8, 2.3)) * 0.5 + 0.5;
 
-      float orbit = uTime * (0.45 + mixMotion * 0.35);
-      vec2 centerA = vec2(cos(orbit), sin(orbit * 1.15)) * (0.10 + uWashRadius * 0.32);
-      vec2 centerB = -centerA;
+      // Keep the title zone calmer: less texture contrast near center.
+      float centerCalm = 1.0 - smoothstep(0.0, 0.35, dist);
+      softNoise = mix(softNoise, 0.52, centerCalm * 0.6);
+      mixNoise = mix(mixNoise, 0.5, centerCalm * 0.75);
 
-      float blobScale = 0.12 + uWashRadius * 0.42;
-      float blueBlob = exp(-pow(length(flow - centerA) / blobScale, 2.0));
-      float redBlob = exp(-pow(length(flow - centerB) / blobScale, 2.0));
+      vec2 baseA = vec2(0.21 + sin(uTime * 0.22) * 0.018, 0.01 + cos(uTime * 0.19) * 0.01);
+      vec2 baseB = -baseA;
+      vec2 centerA = mix(baseA, uBlueCenter, split);
+      vec2 centerB = mix(baseB, uRedCenter, split);
 
-      float field = fbm(vec3(flow * 4.2, uTime * 0.14)) * 0.5 + 0.5;
-      float turbulence = fbm(vec3(flow * 7.0 + vec2(1.7, -2.3), uTime * 0.2)) * 0.5 + 0.5;
+      float spread = mix(0.56, 0.3, split);
+      spread *= mix(1.0, 0.92, smoothstep(0.0, 1.0, uWashRadius));
+      float spreadSq = max(spread * spread, 0.0001);
 
-      float blueW = blueBlob * (0.7 + field * 0.6);
-      float redW = redBlob * (0.7 + (1.0 - field) * 0.45 + turbulence * 0.35);
-      float purpleW = smoothstep(0.05, 1.1, blueBlob * redBlob * 1.8 + turbulence * 0.25);
+      float dA = length(centered - centerA);
+      float dB = length(centered - centerB);
+      float blueBlob = exp(-(dA * dA) / spreadSq);
+      float redBlob = exp(-(dB * dB) / spreadSq);
 
-      vec3 blue = vec3(0.05, 0.3, 1.0);
-      vec3 red = vec3(1.0, 0.05, 0.3);
-      vec3 purple = vec3(0.55, 0.0, 1.0);
-      vec3 whiteHot = vec3(1.0, 0.9, 0.95);
+      float overlap = blueBlob * redBlob;
+      float overlapTurb = mix(1.0, 0.78 + mixNoise * 0.22, overlap);
 
-      float weightSum = redW + blueW + purpleW + 0.0001;
-      vec3 ink = (red * redW + blue * blueW + purple * purpleW) / weightSum;
-      ink *= 0.7 + field * 0.6;
+      float blueW = blueBlob * (0.76 + softNoise * 0.24);
+      float redW = redBlob * (0.76 + (1.0 - softNoise) * 0.22);
+      float purpleW = smoothstep(0.08, 0.75, overlap) * (0.58 + mixNoise * 0.3) * overlapTurb;
 
-      float edgeNoise = fbm(vec3(flow * 8.0, uTime * 0.22)) * 0.5 + 0.5;
-      float edgeOffset = (edgeNoise - 0.5) * 0.09;
-      float radius = max(uWashRadius, 0.0001);
-      float washMask = 1.0;
-      if (uWashRadius <= 1.0) {
-        washMask = 1.0 - smoothstep(radius - 0.08 + edgeOffset, radius + 0.08 + edgeOffset, dist);
-        washMask *= smoothstep(0.01, 0.04, uWashRadius);
-      }
+      vec3 blue = vec3(0.07, 0.18, 0.48);
+      vec3 red = vec3(0.46, 0.07, 0.17);
+      vec3 purple = vec3(0.30, 0.09, 0.46);
 
-      float hotCore = smoothstep(1.0, 2.0, uIntensity) * exp(-dist * 17.0);
-      ink = mix(ink, whiteHot, clamp(hotCore, 0.0, 1.0));
+      vec3 ink = blue * blueW + red * redW + purple * purpleW;
+      ink *= 0.64 + softNoise * 0.24;
+      ink = max(vec3(0.0), (ink - 0.03) * 1.18);
 
-      vec3 effect = ink * washMask * uIntensity;
-      gl_FragColor = vec4(scene.rgb + effect * 0.55, 1.0);
+      float vignette = 1.0 - smoothstep(0.35, 1.25, dist) * 0.16;
+      vec3 effect = ink * uIntensity * vignette;
+      float centerFocus = 1.0 - smoothstep(0.0, 0.62, dist);
+      vec3 base = scene.rgb * (1.0 - uIntensity * (0.12 + centerFocus * 0.08));
+      gl_FragColor = vec4(base + effect * 0.44, 1.0);
     }
   `,
 }

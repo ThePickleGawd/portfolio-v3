@@ -1,11 +1,15 @@
 'use client'
 
-import { useEffect, useRef, type CSSProperties } from 'react'
+import {
+  useEffect,
+  useRef,
+  type AnimationEvent,
+  type PointerEvent,
+} from 'react'
 import dynamic from 'next/dynamic'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { scrollProgress } from '@/lib/store'
-import Sections from '@/components/Sections'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -24,10 +28,7 @@ function HeroLetter({ char, index }: { char: string; index: number }) {
   }
 
   return (
-    <span
-      className="hero-char inline-block"
-      style={{ animationDelay: `${index * 26}ms` } as CSSProperties}
-    >
+    <span className="hero-char inline-block" data-hero-char data-index={index}>
       {char}
     </span>
   )
@@ -35,9 +36,46 @@ function HeroLetter({ char, index }: { char: string; index: number }) {
 
 export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const canvasRef = useRef<HTMLDivElement>(null)
+  const wiggleRafRef = useRef<Map<HTMLSpanElement, number>>(new Map())
+
+  const triggerLetterWiggle = (letter: HTMLSpanElement) => {
+    const wiggleRafs = wiggleRafRef.current
+    const existing = wiggleRafs.get(letter)
+    if (existing) {
+      cancelAnimationFrame(existing)
+    }
+
+    letter.classList.remove('is-wiggling')
+    const rafId = requestAnimationFrame(() => {
+      letter.classList.add('is-wiggling')
+      wiggleRafs.delete(letter)
+    })
+    wiggleRafs.set(letter, rafId)
+  }
+
+  const handleHeroPointerOver = (event: PointerEvent<HTMLHeadingElement>) => {
+    const target = event.target as HTMLElement
+    const letter = target.closest('[data-hero-char]')
+    if (!(letter instanceof HTMLSpanElement)) {
+      return
+    }
+
+    triggerLetterWiggle(letter)
+  }
+
+  const handleHeroAnimationEnd = (
+    event: AnimationEvent<HTMLHeadingElement>
+  ) => {
+    const target = event.target as HTMLElement
+    const letter = target.closest('[data-hero-char]')
+    if (letter instanceof HTMLSpanElement) {
+      letter.classList.remove('is-wiggling')
+    }
+  }
 
   useEffect(() => {
+    const wiggleRafs = wiggleRafRef.current
+
     // ── Hero text fade on scroll ──
     gsap.to('.hero-title', {
       opacity: 0,
@@ -62,17 +100,6 @@ export default function Home() {
       },
     })
 
-    // ── Canvas fade near end — GSAP on DOM, no React state ──
-    gsap.to(canvasRef.current, {
-      opacity: 0,
-      scrollTrigger: {
-        trigger: scrollRef.current,
-        start: '85% top',
-        end: 'bottom bottom',
-        scrub: true,
-      },
-    })
-
     // ── Scroll progress → R3F scene ──
     const trigger = ScrollTrigger.create({
       trigger: scrollRef.current,
@@ -85,6 +112,8 @@ export default function Home() {
     })
 
     return () => {
+      wiggleRafs.forEach((rafId) => cancelAnimationFrame(rafId))
+      wiggleRafs.clear()
       trigger.kill()
       ScrollTrigger.getAll().forEach((t) => t.kill())
     }
@@ -93,18 +122,20 @@ export default function Home() {
   return (
     <main>
       {/* Fixed WebGL Canvas */}
-      <div ref={canvasRef} className="fixed inset-0 z-0">
+      <div className="fixed inset-0 z-0">
         <HeroCanvas />
       </div>
 
       {/* Scroll spacer — drives the energy orb animation */}
       <div
         ref={scrollRef}
-        className="relative z-10 h-[700vh] pointer-events-none"
+        className="relative z-10 h-[340vh] pointer-events-none"
       >
         <div className="h-screen flex flex-col items-center justify-center">
           <h1
             className="hero-title font-[var(--font-syne)] text-6xl sm:text-7xl md:text-9xl font-extrabold tracking-[-0.04em] text-white/90 text-center pointer-events-auto select-none"
+            onPointerOver={handleHeroPointerOver}
+            onAnimationEnd={handleHeroAnimationEnd}
           >
             {'DYLAN LU'.split('').map((char, i) => (
               <HeroLetter key={`${char}-${i}`} char={char} index={i} />
@@ -136,10 +167,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Content — Domain Expansion */}
-      <div className="relative z-20 bg-black">
-        <Sections />
-      </div>
     </main>
   )
 }

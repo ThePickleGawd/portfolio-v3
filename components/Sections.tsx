@@ -1,18 +1,17 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// ── Animated section wrapper ─────────────────────────
 function Reveal({
   children,
   className = '',
   delay = 0,
 }: {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
   delay?: number
 }) {
@@ -46,183 +45,262 @@ function Reveal({
   )
 }
 
-// ── Project card ─────────────────────────────────────
-function ProjectCard({
+function Shell({
+  children,
+  className = '',
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={`mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12 ${className}`}>
+      {children}
+    </div>
+  )
+}
+
+type WorkItem = {
+  title: string
+  description: string
+  tags: string[]
+}
+
+function WorkCard({
   title,
   description,
   tags,
   index,
-}: {
-  title: string
-  description: string
-  tags: string[]
-  index: number
-}) {
+}: WorkItem & { index: number }) {
   return (
-    <Reveal delay={index * 0.12}>
-      <div className="group relative rounded-2xl p-6 border border-white/[0.04] bg-white/[0.02] backdrop-blur-sm hover:border-[#8800ff]/30 transition-all duration-500 cursor-pointer hover:shadow-[0_0_40px_rgba(136,0,255,0.12)]">
-        {/* Thumbnail placeholder */}
-        <div className="h-44 rounded-xl bg-gradient-to-br from-[#8800ff]/10 to-[#0088ff]/10 mb-5 flex items-center justify-center overflow-hidden group-hover:from-[#8800ff]/20 group-hover:to-[#0088ff]/20 transition-all duration-700">
-          <div className="w-20 h-20 rounded-full bg-[#8800ff]/15 blur-2xl group-hover:scale-[2] transition-transform duration-1000" />
-        </div>
-
-        <h3 className="font-display text-lg font-bold text-white/90 mb-2 tracking-tight">
+    <Reveal delay={index * 0.08}>
+      <article className="group relative overflow-hidden rounded-2xl border border-white/12 bg-black/40 p-6 backdrop-blur-xl transition-all duration-500 hover:-translate-y-0.5 hover:border-white/28 hover:bg-black/55 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_0%_0%,rgba(136,0,255,0.15),transparent_55%)] opacity-70 transition-opacity duration-500 group-hover:opacity-100" />
+        <h3 className="relative mb-3 font-display text-2xl font-bold tracking-tight text-white/94">
           {title}
         </h3>
-        <p className="text-white/35 text-sm leading-relaxed mb-4">
+        <p className="relative mb-6 text-sm leading-relaxed text-white/58 md:text-[0.96rem]">
           {description}
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="relative flex flex-wrap gap-2">
           {tags.map((tag) => (
             <span
               key={tag}
-              className="px-3 py-1 rounded-full text-[11px] tracking-wide uppercase bg-[#8800ff]/8 text-[#bb88ff]/70 border border-[#8800ff]/10"
+              className="rounded-full border border-white/14 bg-white/[0.03] px-3 py-1 text-[10px] uppercase tracking-[0.15em] text-white/62"
             >
               {tag}
             </span>
           ))}
         </div>
+      </article>
+    </Reveal>
+  )
+}
+
+function Column({
+  label,
+  items,
+  startIndex,
+}: {
+  label: string
+  items: WorkItem[]
+  startIndex: number
+}) {
+  return (
+    <Reveal className="relative rounded-[1.6rem] border border-white/10 bg-black/45 p-6 backdrop-blur-xl md:p-8">
+      <div className="pointer-events-none absolute inset-0 rounded-[1.6rem] bg-[linear-gradient(130deg,rgba(136,0,255,0.12),rgba(10,10,20,0)_52%)]" />
+      <div className="relative mb-6 flex items-center justify-between border-b border-white/10 pb-4">
+        <p className="text-[11px] uppercase tracking-[0.34em] text-[#c9a6ff]">
+          {label}
+        </p>
+        <span className="text-[11px] uppercase tracking-[0.2em] text-white/38">
+          {items.length} items
+        </span>
+      </div>
+      <div className="relative grid gap-4">
+        {items.map((item, i) => (
+          <WorkCard key={item.title} index={startIndex + i} {...item} />
+        ))}
       </div>
     </Reveal>
   )
 }
 
-// ── Section heading ──────────────────────────────────
-function SectionHeading({
-  label,
-  title,
-}: {
-  label: string
-  title: string
-}) {
-  return (
-    <Reveal className="mb-14">
-      <p className="text-[#8800ff] text-xs tracking-[0.3em] uppercase font-medium mb-3">
-        {label}
-      </p>
-      <h2 className="font-display text-4xl md:text-5xl font-bold tracking-tight text-white/90">
-        {title}
-      </h2>
-    </Reveal>
-  )
-}
-
-// ── Placeholder data ─────────────────────────────────
-const PROJECTS = [
+const PROJECTS: WorkItem[] = [
   {
-    title: 'Project Alpha',
+    title: 'Realtime Memory Atlas',
     description:
-      'A brief description of this project and what makes it interesting. Replace with real content.',
-    tags: ['React', 'Three.js', 'AI'],
+      'Interactive map that indexes notes, papers, and experiments into a graph you can query in natural language.',
+    tags: ['Next.js', 'RAG', 'WebGL'],
   },
   {
-    title: 'Research Beta',
+    title: 'Latency Lab',
     description:
-      'Exploring new frontiers in machine learning and computer vision applications.',
-    tags: ['Python', 'ML', 'Research'],
+      'Benchmark suite for end-to-end AI response quality under real traffic, with automated regression diffing.',
+    tags: ['TypeScript', 'Observability', 'LLMOps'],
   },
   {
-    title: 'Tool Gamma',
+    title: 'Domain Animator',
     description:
-      'Developer tool that streamlines workflow and boosts productivity for teams.',
-    tags: ['TypeScript', 'CLI', 'OSS'],
-  },
-  {
-    title: 'Experiment Delta',
-    description:
-      'Creative coding experiment pushing the boundaries of web-based visualisation.',
-    tags: ['WebGL', 'GLSL', 'Creative'],
+      'Tooling to choreograph shader scenes with section-aware progress curves and timeline scrubbing.',
+    tags: ['Three.js', 'GSAP', 'Shaders'],
   },
 ]
 
-// ── Main Sections Component ──────────────────────────
+const RESEARCH: WorkItem[] = [
+  {
+    title: 'Grounded Generation',
+    description:
+      'Reducing hallucination via retrieval confidence and citation-aware decoding in constrained contexts.',
+    tags: ['LLM', 'Evaluation', 'Safety'],
+  },
+  {
+    title: 'Visual Reasoning Interfaces',
+    description:
+      'Designing spatial UI metaphors that improve human understanding of model chains and uncertainty.',
+    tags: ['HCI', 'Visualization', 'UX'],
+  },
+]
+
+const SOCIALS = [
+  {
+    label: 'Instagram',
+    href: 'https://instagram.com/',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
+        <rect
+          x="3"
+          y="3"
+          width="18"
+          height="18"
+          rx="5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <circle cx="12" cy="12" r="4.1" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
+        <rect
+          x="3"
+          y="3"
+          width="18"
+          height="18"
+          rx="4"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M8.2 10.3V16.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <circle cx="8.2" cy="7.8" r="1.15" fill="currentColor" />
+        <path
+          d="M11.6 10.3V16.5M11.6 12.9C11.6 11.6 12.5 10.3 14.4 10.3C16.3 10.3 16.9 11.5 16.9 13.3V16.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    label: 'Email',
+    href: 'mailto:hello@example.com',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
+        <rect
+          x="3"
+          y="5"
+          width="18"
+          height="14"
+          rx="2.4"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M4.8 7L12 12.6L19.2 7"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+]
+
 export default function Sections() {
   return (
     <>
-      {/* Domain Expansion banner */}
-      <section className="relative py-32 overflow-hidden">
-        {/* Ambient glow */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#8800ff]/[0.06] blur-[120px]" />
+      <section className="relative pb-28 pt-24 md:pt-32">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-8 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[#6500ff]/[0.16] blur-[150px]" />
+          <div className="absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-[#0080ff]/[0.09] blur-[120px]" />
+          <div className="absolute -right-24 bottom-6 h-72 w-72 rounded-full bg-[#ff296d]/[0.08] blur-[120px]" />
         </div>
 
-        <Reveal className="text-center relative z-10">
-          <p className="text-[#8800ff]/60 text-xs tracking-[0.5em] uppercase mb-4 font-medium">
-            — Domain Expansion —
-          </p>
-          <h2 className="font-display text-5xl md:text-7xl font-black tracking-tighter text-white/90 mb-6">
-            Unlimited Void
-          </h2>
-          <p className="text-white/30 max-w-md mx-auto leading-relaxed">
-            Welcome to my domain. Explore projects, research, and experiments
-            below.
-          </p>
+        <Shell className="relative">
+          <Reveal className="rounded-[2rem] border border-white/12 bg-black/45 px-6 py-10 text-center backdrop-blur-xl shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:px-10 sm:py-12 md:px-14 md:py-14">
+            <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.48em] text-[#c6a2ff]">
+              Projects + Research
+            </p>
+            <h2 className="mx-auto max-w-4xl font-display text-[clamp(2.7rem,8vw,6.3rem)] font-black leading-[0.92] tracking-[-0.04em] text-white">
+              Built Work,
+              <br />
+              Active Inquiry
+            </h2>
+            <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-white/60">
+              A focused snapshot of what I am building and what I am actively
+              investigating, presented as one continuous, scene-connected
+              surface.
+            </p>
+          </Reveal>
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <Column label="Projects" items={PROJECTS} startIndex={0} />
+            <Column
+              label="Research"
+              items={RESEARCH}
+              startIndex={PROJECTS.length}
+            />
+          </div>
+        </Shell>
+      </section>
+
+      <footer className="pb-16">
+        <Shell>
+          <Reveal className="flex w-full flex-col gap-5 rounded-[1.7rem] border border-white/12 bg-black/45 px-6 py-6 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-white/38">
+              Connect
+            </p>
+            <p className="mt-2 text-sm text-white/60">
+              Instagram, LinkedIn, and email
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {SOCIALS.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target={social.href.startsWith('mailto:') ? undefined : '_blank'}
+                rel={social.href.startsWith('mailto:') ? undefined : 'noreferrer'}
+                aria-label={social.label}
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-black/55 text-white/80 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#d6b6ff] hover:text-white hover:shadow-[0_0_36px_rgba(136,0,255,0.38)]"
+              >
+                {social.icon}
+              </a>
+            ))}
+          </div>
         </Reveal>
-      </section>
-
-      {/* Projects */}
-      <section className="relative max-w-6xl mx-auto px-6 pb-32">
-        <SectionHeading label="Work" title="Projects" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {PROJECTS.map((project, i) => (
-            <ProjectCard key={project.title} index={i} {...project} />
-          ))}
-        </div>
-      </section>
-
-      {/* Photos */}
-      <section className="relative max-w-6xl mx-auto px-6 pb-32">
-        <SectionHeading label="Gallery" title="Photos" />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Reveal key={i} delay={i * 0.08}>
-              <div className="aspect-square rounded-xl bg-white/[0.02] border border-white/[0.04] overflow-hidden group cursor-pointer hover:border-[#8800ff]/20 transition-all duration-500">
-                <div className="w-full h-full bg-gradient-to-br from-[#0088ff]/5 to-[#ff0044]/5 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
-                  <span className="text-white/10 text-xs tracking-widest uppercase">
-                    Photo {i + 1}
-                  </span>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Research */}
-      <section className="relative max-w-6xl mx-auto px-6 pb-32">
-        <SectionHeading label="Research" title="Interests" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[
-            {
-              title: 'Machine Learning',
-              body: 'Exploring neural network architectures and their applications in real-world systems.',
-            },
-            {
-              title: 'Computer Vision',
-              body: 'Working on perception models that understand and reason about visual data.',
-            },
-          ].map((item, i) => (
-            <Reveal key={item.title} delay={i * 0.12}>
-              <div className="rounded-2xl p-8 border border-white/[0.04] bg-white/[0.015]">
-                <h3 className="font-display text-xl font-bold text-white/90 mb-3 tracking-tight">
-                  {item.title}
-                </h3>
-                <p className="text-white/30 text-sm leading-relaxed">
-                  {item.body}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/[0.04] py-16 text-center">
-        <Reveal>
-          <p className="text-white/20 text-sm tracking-wide">
-            Built with cursed energy &amp; code
-          </p>
-        </Reveal>
+        </Shell>
       </footer>
     </>
   )

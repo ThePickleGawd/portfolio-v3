@@ -1,18 +1,42 @@
 import type { CSSProperties } from 'react'
 
-const MEMORY_RINGS = [
+type CardFormat = 'portrait' | 'landscape' | 'tall'
+type MemoryCard = {
+  name: string
+  image: string
+  format: CardFormat
+}
+type MemoryRing = {
+  id: string
+  radius: number
+  duration: number
+  reverse: boolean
+  cards: MemoryCard[]
+}
+
+function getCardSize(format: CardFormat) {
+  if (format === 'landscape') {
+    return { width: 138, height: 94 }
+  }
+  if (format === 'tall') {
+    return { width: 110, height: 170 }
+  }
+  return { width: 98, height: 146 }
+}
+
+const MEMORY_RINGS: MemoryRing[] = [
   {
     id: 'outer',
     radius: 340,
     duration: 28,
     reverse: false,
     cards: [
-      { name: 'Builder Arc', hueA: '#4f98ff', hueB: '#75d6ff' },
-      { name: 'Campus Arc', hueA: '#7868ff', hueB: '#b892ff' },
-      { name: 'Lab Arc', hueA: '#ff6f90', hueB: '#ffd0e0' },
-      { name: 'Vision Arc', hueA: '#4d89ff', hueB: '#8bd9ff' },
-      { name: 'Travel Arc', hueA: '#7a62ff', hueB: '#b0a2ff' },
-      { name: 'Creator Arc', hueA: '#ff7f9f', hueB: '#ffd8e5' },
+      { name: 'Goku Arc', image: '/domain/dragon-ball-super.jpg', format: 'portrait' },
+      { name: 'JJK Arc', image: '/domain/jujutsu-kaisen.jpg', format: 'landscape' },
+      { name: 'Chainsaw Arc', image: '/domain/chainsaw-man.jpg', format: 'tall' },
+      { name: 'Demon Arc', image: '/domain/demon-slayer.jpg', format: 'landscape' },
+      { name: 'Naruto Arc', image: '/domain/naruto.jpg', format: 'portrait' },
+      { name: 'Titan Arc', image: '/domain/attack-on-titan.jpg', format: 'tall' },
     ],
   },
   {
@@ -21,11 +45,11 @@ const MEMORY_RINGS = [
     duration: 20,
     reverse: true,
     cards: [
-      { name: 'Design Arc', hueA: '#5aabff', hueB: '#9be0ff' },
-      { name: 'Research Arc', hueA: '#8a63ff', hueB: '#d2acff' },
-      { name: 'Speaker Arc', hueA: '#ff6f9f', hueB: '#ffc2db' },
-      { name: 'Team Arc', hueA: '#4f98ff', hueB: '#9ad3ff' },
-      { name: 'Growth Arc', hueA: '#8c73ff', hueB: '#c7bcff' },
+      { name: 'Bleach Arc', image: '/domain/bleach.jpg', format: 'landscape' },
+      { name: 'Death Arc', image: '/domain/death-note.jpg', format: 'portrait' },
+      { name: 'Hero Arc', image: '/domain/my-hero-academia.jpg', format: 'tall' },
+      { name: 'Hunter Arc', image: '/domain/hunter-x-hunter.jpg', format: 'landscape' },
+      { name: 'Ghoul Arc', image: '/domain/tokyo-ghoul.jpg', format: 'portrait' },
     ],
   },
   {
@@ -34,10 +58,10 @@ const MEMORY_RINGS = [
     duration: 14,
     reverse: false,
     cards: [
-      { name: 'Core Arc', hueA: '#4ea5ff', hueB: '#91d9ff' },
-      { name: 'Focus Arc', hueA: '#a25aff', hueB: '#e0adff' },
-      { name: 'Future Arc', hueA: '#ff688c', hueB: '#ffc2d7' },
-      { name: 'Legacy Arc', hueA: '#5e99ff', hueB: '#9dbfff' },
+      { name: 'Geass Arc', image: '/domain/code-geass.jpg', format: 'portrait' },
+      { name: 'Spy Arc', image: '/domain/spy-x-family.jpg', format: 'landscape' },
+      { name: 'Vinland Arc', image: '/domain/vinland-saga.jpg', format: 'tall' },
+      { name: 'One Piece Arc', image: '/domain/one-piece.jpg', format: 'landscape' },
     ],
   },
 ]
@@ -75,18 +99,24 @@ export default function Experiment3Page() {
           >
             {ring.cards.map((card, index) => {
               const angle = (360 / ring.cards.length) * index
+              const size = getCardSize(card.format)
               return (
                 <article
                   key={`${ring.id}-${card.name}`}
-                  className="memory-card absolute left-1/2 top-1/2 h-28 w-20 overflow-hidden rounded-2xl border border-white/25 shadow-[0_14px_35px_rgba(0,0,0,0.55)] sm:h-36 sm:w-24"
+                  className="memory-card absolute left-1/2 top-1/2 overflow-hidden rounded-2xl border border-white/25 shadow-[0_14px_35px_rgba(0,0,0,0.55)]"
                   style={
                     {
                       transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-${ring.radius}px) rotate(-${angle}deg)`,
-                      background: `linear-gradient(150deg, ${card.hueA}, ${card.hueB})`,
+                      backgroundImage: `linear-gradient(160deg, rgba(8, 8, 18, 0.16), rgba(5, 3, 12, 0.48)), url(${card.image})`,
+                      backgroundPosition: 'center',
+                      backgroundSize: 'cover',
+                      backgroundRepeat: 'no-repeat',
+                      width: `${size.width}px`,
+                      height: `${size.height}px`,
                     } as CSSProperties
                   }
                 >
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.5),transparent_42%),radial-gradient(circle_at_70%_80%,rgba(22,10,38,0.35),transparent_45%)]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.3),transparent_38%),linear-gradient(to_top,rgba(0,0,0,0.48),transparent_50%)]" />
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-white/35 bg-black/35 px-2 py-0.5 text-[9px] uppercase tracking-[0.18em] text-white/90">
                     {card.name}
                   </div>

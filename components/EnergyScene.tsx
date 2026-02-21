@@ -22,8 +22,40 @@ import {
 } from '@/lib/shaders'
 
 // ── Constants ────────────────────────────────────────
-const PARTICLE_COUNT = isMobile ? 150 : 500
-const EXPLOSION_COUNT = isMobile ? 250 : 900
+const PARTICLE_COUNT = isMobile ? 120 : 280
+const EXPLOSION_COUNT = isMobile ? 180 : 560
+const DEPTH_STAR_COUNT = isMobile ? 360 : 900
+const ORB_RADIUS = 0.12
+
+const depthVeilVertexShader = /* glsl */ `
+varying vec2 vUv;
+
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`
+
+const depthVeilFragmentShader = /* glsl */ `
+uniform vec3 uColorA;
+uniform vec3 uColorB;
+uniform float uTime;
+uniform float uOpacity;
+
+varying vec2 vUv;
+
+void main() {
+  vec2 uv = vUv * 2.0 - 1.0;
+  float d = length(uv);
+  float mask = 1.0 - smoothstep(0.2, 1.05, d);
+
+  float waveA = 0.5 + 0.5 * sin((uv.x * 3.6 + uv.y * 2.8) + uTime * 0.08);
+  float waveB = 0.5 + 0.5 * sin((uv.x * -2.7 + uv.y * 3.4) - uTime * 0.06);
+  vec3 col = mix(uColorA, uColorB, waveA * 0.65 + waveB * 0.35);
+
+  gl_FragColor = vec4(col, mask * mask * uOpacity);
+}
+`
 
 // ── Helpers ──────────────────────────────────────────
 function smoothstep(edge0: number, edge1: number, x: number) {
@@ -33,6 +65,126 @@ function smoothstep(edge0: number, edge1: number, x: number) {
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
+}
+
+// ── Depth Backdrop ───────────────────────────────────
+function DepthBackdrop() {
+  const starsRef = useRef<THREE.Points>(null!)
+  const veilARef = useRef<THREE.ShaderMaterial>(null!)
+  const veilBRef = useRef<THREE.ShaderMaterial>(null!)
+
+  const { starPositions, starColors } = useMemo(() => {
+    const positions = new Float32Array(DEPTH_STAR_COUNT * 3)
+    const colors = new Float32Array(DEPTH_STAR_COUNT * 3)
+    const c = new THREE.Color()
+
+    for (let i = 0; i < DEPTH_STAR_COUNT; i++) {
+      // Full spherical distribution around scene center for stronger depth cues.
+      const theta = Math.random() * Math.PI * 2
+      const u = Math.random() * 2 - 1
+      const radius = 12 + Math.random() * 30
+      const ring = Math.sqrt(1.0 - u * u)
+
+      positions[i * 3] = Math.cos(theta) * ring * radius
+      positions[i * 3 + 1] = u * radius * 0.95
+      positions[i * 3 + 2] = Math.sin(theta) * ring * radius
+
+      const t = Math.random()
+      if (t < 0.55) {
+        c.setRGB(0.48 + Math.random() * 0.24, 0.62 + Math.random() * 0.24, 1.0)
+      } else if (t < 0.85) {
+        c.setRGB(1.0, 0.52 + Math.random() * 0.2, 0.86 + Math.random() * 0.14)
+      } else {
+        c.setRGB(0.84 + Math.random() * 0.16, 0.84 + Math.random() * 0.16, 1.0)
+      }
+      colors[i * 3] = c.r
+      colors[i * 3 + 1] = c.g
+      colors[i * 3 + 2] = c.b
+    }
+
+    return { starPositions: positions, starColors: colors }
+  }, [])
+
+  useEffect(() => {
+    const geo = starsRef.current.geometry
+    geo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3))
+    geo.setAttribute('color', new THREE.BufferAttribute(starColors, 3))
+  }, [starPositions, starColors])
+
+  useFrame(({ clock }) => {
+    const p = scrollProgress.current
+    const fade = 1.0 - smoothstep(0.88, 1.0, p)
+    const t = clock.elapsedTime
+
+    if (starsRef.current) {
+      starsRef.current.rotation.y = t * 0.016
+      starsRef.current.rotation.x = Math.sin(t * 0.09) * 0.035
+      const mat = starsRef.current.material as THREE.PointsMaterial
+      mat.opacity = (isMobile ? 0.25 : 0.34) * fade
+    }
+
+    if (veilARef.current) {
+      veilARef.current.uniforms.uTime.value = t
+      veilARef.current.uniforms.uOpacity.value = 0.1 * fade
+    }
+    if (veilBRef.current) {
+      veilBRef.current.uniforms.uTime.value = t + 4.0
+      veilBRef.current.uniforms.uOpacity.value = 0.06 * fade
+    }
+  })
+
+  return (
+    <group>
+      <points ref={starsRef}>
+        <bufferGeometry />
+        <pointsMaterial
+          size={isMobile ? 0.055 : 0.06}
+          sizeAttenuation
+          transparent
+          opacity={0.3}
+          vertexColors
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
+
+      <mesh position={[0, 1.2, -16]} rotation={[0.05, -0.06, -0.35]} scale={[30, 18, 1]}>
+        <planeGeometry args={[1, 1]} />
+        <shaderMaterial
+          ref={veilARef}
+          vertexShader={depthVeilVertexShader}
+          fragmentShader={depthVeilFragmentShader}
+          uniforms={{
+            uColorA: { value: new THREE.Color('#1f3f92') },
+            uColorB: { value: new THREE.Color('#7f2b8f') },
+            uTime: { value: 0 },
+            uOpacity: { value: 0.1 },
+          }}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+
+      <mesh position={[0, -1.4, -22]} rotation={[-0.03, 0.08, 0.28]} scale={[36, 22, 1]}>
+        <planeGeometry args={[1, 1]} />
+        <shaderMaterial
+          ref={veilBRef}
+          vertexShader={depthVeilVertexShader}
+          fragmentShader={depthVeilFragmentShader}
+          uniforms={{
+            uColorA: { value: new THREE.Color('#0f2c7d') },
+            uColorB: { value: new THREE.Color('#8d286f') },
+            uTime: { value: 0 },
+            uOpacity: { value: 0.06 },
+          }}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </group>
+  )
 }
 
 // ── Particle Points (imperative geometry) ────────────
@@ -163,7 +315,7 @@ function EnergyOrb({
   const _cOrb = useMemo(() => new THREE.Color(), [])
   const _cP = useMemo(() => new THREE.Color(), [])
   const _cGlow = useMemo(() => new THREE.Color(), [])
-  const introGlowScale = useMemo(() => (isMobile ? 4.8 : 6.0), [])
+  const introGlowScale = useMemo(() => (isMobile ? 4.2 : 5.2), [])
 
   useFrame(({ clock }) => {
     const p = scrollProgress.current
@@ -188,22 +340,24 @@ function EnergyOrb({
       y = lerp(startY, sign * 0.18, t)
       z = lerp(0, sign * 0.2, t)
     } else if (p <= 0.66) {
-      // Orbital mixing with 2 extra turns, accelerating while radius contracts.
+      // Scroll-driven orbital mixing: accelerates and tightens until explosion.
       const mixT = smoothstep(0.22, 0.66, p)
-      const accelT = Math.pow(mixT, 1.7)
-      const turns = 3.5 // previous ~1.5 turns + 2 extra
-      const turnProgress = accelT * turns
+      const turnProgress = Math.pow(mixT, 1.75) * 4.2 // stronger acceleration toward end
 
-      let radius = 0.85 * Math.pow(0.72, turnProgress)
-      radius = Math.max(0.05, radius)
-      radius = lerp(radius, 0.05, smoothstep(0.60, 0.66, p))
+      let radius: number
+      if (p <= 0.52) {
+        // Keep wide spacing early so both cores are clearly distinct.
+        radius = lerp(1.12, 0.54, smoothstep(0.22, 0.52, p))
+      } else {
+        // Tight collapse near explosion handoff.
+        radius = lerp(0.54, 0.06, smoothstep(0.52, 0.66, p))
+      }
 
-      const orbitSpin = time * (0.55 + mixT * 1.25)
       const orbitArc = turnProgress * Math.PI * 2.0
-      const angle = orbitSpin + orbitArc + (sign > 0 ? 0 : Math.PI)
+      const angle = orbitArc + (sign > 0 ? 0 : Math.PI)
       x = Math.cos(angle) * radius
-      y = Math.sin(angle * 1.2) * (0.12 + radius * 0.28)
-      z = Math.sin(angle * 1.03 + sign * 0.35) * radius * 0.95
+      y = Math.sin(angle * 1.18) * (0.11 + radius * 0.2)
+      z = Math.sin(angle * 1.03 + sign * 0.35) * radius * 1.28
     } else {
       x = 0
       y = 0
@@ -239,7 +393,7 @@ function EnergyOrb({
     if (groupRef.current) groupRef.current.scale.setScalar(scale)
 
     // ── Color blend → purple ──
-    const mergeT = p < 0.66 ? smoothstep(0.18, 0.42, p) : 1.0
+    const mergeT = p < 0.66 ? smoothstep(0.56, 0.66, p) : 1.0
     _cOrb.copy(orbColor).lerp(purpleColor, mergeT)
     _cP.copy(pColor).lerp(purpleColor, mergeT)
     _cGlow.copy(_cOrb).lerp(comfortColor, introT * 0.92)
@@ -250,7 +404,10 @@ function EnergyOrb({
     const preExplodeFade = 1.0 - smoothstep(0.62, 0.66, p)
     const endFade = p > 0.78 ? 1.0 - smoothstep(0.78, 0.92, p) : 1.0
     const fade = preExplodeFade * endFade
-    const introGlowIntensity = lerp(1.0, 0.38, introT)
+    const introGlowIntensity = lerp(1.0, 0.56, introT)
+    const mixGlowT = smoothstep(0.22, 0.66, p)
+    const postIntroGlowScale = p > 0.22 ? lerp(0.62, 0.34, mixGlowT) : 1.35
+    const glowFactor = p > 0.22 ? lerp(0.22, 0.1, mixGlowT) : 0.7
 
     if (orbMatRef.current) {
       orbMatRef.current.uniforms.uTime.value = time
@@ -258,12 +415,12 @@ function EnergyOrb({
       orbMatRef.current.uniforms.uIntensity.value = intensity * fade
     }
     if (glowMeshRef.current) {
-      const baseGlowScale = lerp(1.8, introGlowScale, introT)
+      const baseGlowScale = lerp(postIntroGlowScale, introGlowScale, introT)
       glowMeshRef.current.scale.setScalar(baseGlowScale)
     }
     if (glowMatRef.current) {
       glowMatRef.current.uniforms.uColor.value.copy(_cGlow)
-      glowMatRef.current.uniforms.uIntensity.value = intensity * 0.7 * fade * introGlowIntensity
+      glowMatRef.current.uniforms.uIntensity.value = intensity * glowFactor * fade * introGlowIntensity
     }
     if (particleMatRef.current) {
       particleMatRef.current.uniforms.uTime.value = time
@@ -278,7 +435,7 @@ function EnergyOrb({
   return (
     <group ref={groupRef} position={[startX, startY, 0]}>
       <mesh>
-        <sphereGeometry args={[0.18, 64, 64]} />
+        <sphereGeometry args={[ORB_RADIUS, 64, 64]} />
         <shaderMaterial
           ref={orbMatRef}
           vertexShader={orbVertexShader}
@@ -294,8 +451,8 @@ function EnergyOrb({
         />
       </mesh>
 
-      <mesh ref={glowMeshRef} scale={[1.8, 1.8, 1.8]}>
-        <sphereGeometry args={[0.18, 32, 32]} />
+      <mesh ref={glowMeshRef} scale={[1.35, 1.35, 1.35]}>
+        <sphereGeometry args={[ORB_RADIUS, 32, 32]} />
         <shaderMaterial
           ref={glowMatRef}
           vertexShader={glowVertexShader}
@@ -369,24 +526,26 @@ function CameraController() {
   const target = useMemo(() => new THREE.Vector3(), [])
   const lookTarget = useMemo(() => new THREE.Vector3(), [])
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     const p = scrollProgress.current
-    const time = clock.elapsedTime
 
     let orbitWeight = 0
-    if (p >= 0.10 && p < 0.26) {
-      orbitWeight = smoothstep(0.10, 0.26, p)
-    } else if (p >= 0.26 && p < 0.62) {
+    if (p >= 0.18 && p < 0.22) {
+      orbitWeight = smoothstep(0.18, 0.22, p)
+    } else if (p >= 0.22 && p < 0.66) {
       orbitWeight = 1
-    } else if (p >= 0.62 && p < 0.74) {
-      orbitWeight = 1.0 - smoothstep(0.62, 0.74, p)
+    } else if (p >= 0.66 && p < 0.74) {
+      orbitWeight = 1.0 - smoothstep(0.66, 0.74, p)
     }
 
-    const angle = time * 0.24 + smoothstep(0.18, 0.60, p) * 1.4
-    const radius = 8
+    const camT = smoothstep(0.22, 0.66, p)
+    const camTurns = 1.35
+    const angle = camT * camTurns * Math.PI * 2.0 + 0.35
+    const radius = lerp(8.2, 6.9, camT)
+    const height = lerp(0.08, 0.92, camT) + Math.sin(angle * 0.55) * 0.12
     target.set(
       Math.sin(angle) * radius * orbitWeight,
-      Math.sin(angle * 0.7) * 1.0 * orbitWeight,
+      height * orbitWeight,
       lerp(8, Math.cos(angle) * radius, orbitWeight)
     )
 
@@ -404,7 +563,7 @@ function CameraController() {
 // Using useFrame priority > 0 tells R3F to skip its own
 // render pass — only our composer renders.
 function NativeBloom() {
-  const { gl, scene, camera, size } = useThree()
+  const { gl, scene, camera, size, viewport } = useThree()
   const composerRef = useRef<EffectComposer | null>(null)
   const bloomRef = useRef<UnrealBloomPass | null>(null)
   const introWashRef = useRef<ShaderPass | null>(null)
@@ -446,16 +605,18 @@ function NativeBloom() {
     if (!composerRef.current || !bloomRef.current) return
 
     const p = scrollProgress.current
+    const introScrollBlend = 1.0 - smoothstep(0.0, 0.14, p)
+    const introBlend = introScrollBlend
+    const introSplit = smoothstep(0.0, 0.08, p)
 
     // ── Bloom strength ──
     let strength = 0.8
-    const introBlend = 1.0 - smoothstep(0.0, 0.14, p)
     if (introBlend > 0) {
-      strength = lerp(1.55, 0.8, 1.0 - introBlend)
+      strength = lerp(1.0, 0.8, 1.0 - introBlend)
     } else if (p > 0.22 && p <= 0.62) {
-      strength = 0.8 + smoothstep(0.22, 0.34, p) * 0.75
+      strength = 0.8 + smoothstep(0.22, 0.34, p) * 0.18
     } else if (p > 0.56 && p <= 0.66) {
-      strength = 1.55 - smoothstep(0.56, 0.66, p) * 0.45
+      strength = 0.98 - smoothstep(0.56, 0.66, p) * 0.18
     } else if (p > 0.66 && p < 0.85) {
       const explosionPeak = Math.sin(smoothstep(0.66, 0.82, p) * Math.PI) * 2.5
       strength = 0.8 + explosionPeak
@@ -467,11 +628,29 @@ function NativeBloom() {
 
     // ── Intro ink-in-water wash: fills hero at start, fades into orb timeline ──
     if (introWashRef.current) {
+      introWashRef.current.enabled = introBlend > 0.01
+      if (!introWashRef.current.enabled) {
+        composerRef.current.render(delta)
+        return
+      }
+
       const u = introWashRef.current.uniforms
       const swirlPulse = 0.5 + 0.5 * Math.sin(clock.elapsedTime * 0.55)
-      u.uWashRadius.value = (1.22 + swirlPulse * 0.18) * introBlend
-      u.uSwirlStrength.value = (0.65 + swirlPulse * 0.45) * introBlend
-      u.uIntensity.value = (1.18 + swirlPulse * 0.26) * introBlend
+      const startScale = 0.6
+      const coreRadius = ORB_RADIUS * startScale
+      const glowRadius = ORB_RADIUS * 1.35 * startScale
+      const edgeStartX = viewport.width * 0.5 + (coreRadius + glowRadius) * 0.5
+      const blueStartY = Math.min(viewport.height * 0.22, 1.4)
+      const redStartY = -Math.min(viewport.height * 0.24, 1.5)
+
+      u.uWashRadius.value = lerp(1.0, 0.58, introSplit) * introBlend
+      u.uSwirlStrength.value = (0.18 + swirlPulse * 0.08) * introBlend
+      u.uIntensity.value = lerp(0.72, 0.46, introSplit) * introBlend
+      u.uBlueCenter.value.x = edgeStartX / viewport.width
+      u.uBlueCenter.value.y = blueStartY / viewport.height
+      u.uRedCenter.value.x = -edgeStartX / viewport.width
+      u.uRedCenter.value.y = redStartY / viewport.height
+      u.uSplit.value = introSplit
       u.uTime.value = clock.elapsedTime
     }
 
@@ -485,8 +664,8 @@ function NativeBloom() {
 export default function EnergyScene() {
   const { viewport } = useThree()
   const startScale = 0.6
-  const coreRadius = 0.18 * startScale
-  const glowRadius = 0.18 * 1.8 * startScale
+  const coreRadius = ORB_RADIUS * startScale
+  const glowRadius = ORB_RADIUS * 1.35 * startScale
   // Place center just beyond half-width so core is offscreen while glow still peeks in.
   const edgeStartX = viewport.width * 0.5 + (coreRadius + glowRadius) * 0.5
   const blueStartY = Math.min(viewport.height * 0.22, 1.4)
@@ -495,6 +674,8 @@ export default function EnergyScene() {
   return (
     <>
       <color attach="background" args={['#000000']} />
+      <fog attach="fog" args={['#050711', 8, 34]} />
+      <DepthBackdrop />
 
       {/* Blue orb — upper right area */}
       <EnergyOrb color="#0088ff" startX={edgeStartX} startY={blueStartY} particleColor="#0066ff" />

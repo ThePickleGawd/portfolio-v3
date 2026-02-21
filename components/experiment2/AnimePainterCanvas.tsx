@@ -6,51 +6,33 @@ type AnimePainterCanvasProps = {
   progress: number
 }
 
-type CloudBlob = {
-  ox: number
-  oy: number
-  r: number
-}
-
-type CloudCluster = {
+type Wisp = {
   x: number
   y: number
-  scale: number
-  drift: number
-  wobble: number
-  alpha: number
-  blobs: CloudBlob[]
-}
-
-type BrushStroke = {
-  x: number
-  y: number
-  len: number
+  length: number
   width: number
-  rot: number
-  alpha: number
-  speed: number
-  tint: number
-}
-
-type Ember = {
-  orbit: number
   angle: number
+  drift: number
   speed: number
-  size: number
-  lifeOffset: number
-  tilt: number
+  alpha: number
+  tint: 'blue' | 'pink' | 'violet'
 }
 
-type DrawOrbOptions = {
-  x: number
-  y: number
+type Spark = {
+  angle: number
   radius: number
-  time: number
-  hue: 'blue' | 'pink' | 'purple'
-  visibility: number
-  embers: Ember[]
-  auraStrength: number
+  speed: number
+  phase: number
+  size: number
+}
+
+type DropletPalette = {
+  shadow: string
+  mid: string
+  light: string
+  flash: string
+  outline: string
+  glow: string
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -67,30 +49,34 @@ function mix(a: number, b: number, t: number) {
 }
 
 function seeded(seed: number) {
-  let value = seed
+  let value = seed >>> 0
   return () => {
-    value = (value * 1664525 + 1013904223) % 4294967296
+    value = (value * 1664525 + 1013904223) >>> 0
     return value / 4294967296
   }
 }
 
-function hardCircle(
+function roughBlobPath(
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
   radius: number,
-  roughness: number,
+  time: number,
   seedOffset: number,
-  time: number
+  roughness = 0.035
 ) {
-  const steps = 18
+  const steps = 28
   ctx.beginPath()
   for (let i = 0; i <= steps; i += 1) {
-    const a = (i / steps) * Math.PI * 2
-    const wobble = 1 + Math.sin(a * 3 + seedOffset + time * 0.5) * roughness
+    const t = i / steps
+    const angle = t * Math.PI * 2
+    const wobble =
+      1 +
+      Math.sin(angle * 3 + seedOffset + time * 0.45) * roughness +
+      Math.sin(angle * 5 - seedOffset * 0.7 + time * 0.22) * roughness * 0.6
     const r = radius * wobble
-    const x = cx + Math.cos(a) * r
-    const y = cy + Math.sin(a) * r
+    const x = cx + Math.cos(angle) * r
+    const y = cy + Math.sin(angle) * r
     if (i === 0) {
       ctx.moveTo(x, y)
     } else {
@@ -100,135 +86,252 @@ function hardCircle(
   ctx.closePath()
 }
 
+function drawGlow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  color: string,
+  alpha: number,
+  spread = 2.1
+) {
+  const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * spread)
+  gradient.addColorStop(0, `${color}${Math.round(alpha * 255).toString(16).padStart(2, '0')}`)
+  gradient.addColorStop(0.42, `${color}${Math.round(alpha * 0.32 * 255)
+    .toString(16)
+    .padStart(2, '0')}`)
+  gradient.addColorStop(1, `${color}00`)
+  ctx.fillStyle = gradient
+  ctx.beginPath()
+  ctx.arc(x, y, radius * spread, 0, Math.PI * 2)
+  ctx.fill()
+}
+
 function drawSpark(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   size: number,
-  rotation: number,
+  angle: number,
   color: string,
   alpha: number
 ) {
   ctx.save()
   ctx.translate(x, y)
-  ctx.rotate(rotation)
+  ctx.rotate(angle)
   ctx.globalAlpha = alpha
   ctx.fillStyle = color
   ctx.beginPath()
   ctx.moveTo(0, -size)
-  ctx.lineTo(size * 0.65, 0)
+  ctx.lineTo(size * 0.64, 0)
   ctx.lineTo(0, size)
-  ctx.lineTo(-size * 0.65, 0)
+  ctx.lineTo(-size * 0.64, 0)
   ctx.closePath()
   ctx.fill()
   ctx.restore()
 }
 
-function drawCelOrb(ctx: CanvasRenderingContext2D, options: DrawOrbOptions) {
-  const { x, y, radius, time, hue, visibility, embers, auraStrength } = options
-
-  if (visibility <= 0) {
+function drawDroplet(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  time: number,
+  alpha: number,
+  palette: DropletPalette,
+  tilt: number,
+  glowStrength: number
+) {
+  if (alpha <= 0) {
     return
   }
 
-  const palette =
-    hue === 'blue'
-      ? {
-          dark: '#0d4a9f',
-          mid: '#2288ff',
-          light: '#65c2ff',
-          flash: '#e8f7ff',
-          aura: '#3fb3ff',
-          ember: '#9dd8ff',
-          outline: '#062a58',
-        }
-      : hue === 'pink'
-        ? {
-            dark: '#8f1246',
-            mid: '#ff2266',
-            light: '#ff86a7',
-            flash: '#ffe9f0',
-            aura: '#ff5d94',
-            ember: '#ffd4e0',
-            outline: '#4f0b26',
-          }
-        : {
-            dark: '#421576',
-            mid: '#8833ee',
-            light: '#b98cff',
-            flash: '#f2e7ff',
-            aura: '#aa55ff',
-            ember: '#e4ccff',
-            outline: '#240b42',
-          }
-
-  const auraLayers = 16
-  for (let i = 0; i < auraLayers; i += 1) {
-    const pct = i / auraLayers
-    const angle = pct * Math.PI * 2
-    const wave = Math.sin(time * 1.4 + i * 0.9) * 0.35
-    const pulse = 1 + Math.sin(time * 2.1 + i * 1.2) * 0.16
-    const tendrilLen = radius * mix(1.45, 1.95, pct) * pulse * auraStrength
-
-    ctx.save()
-    ctx.globalAlpha = visibility * (0.15 - pct * 0.008)
-    ctx.strokeStyle = palette.aura
-    ctx.lineWidth = mix(2.8, 1.2, pct)
-    ctx.beginPath()
-
-    const sx = x + Math.cos(angle) * radius * 1.05
-    const sy = y + Math.sin(angle) * radius * 1.05
-    const cx = x + Math.cos(angle + wave) * tendrilLen
-    const cy = y + Math.sin(angle + wave) * tendrilLen
-    const ex = x + Math.cos(angle + wave * 0.4) * radius * 1.25
-    const ey = y + Math.sin(angle + wave * 0.4) * radius * 1.25
-
-    ctx.moveTo(sx, sy)
-    ctx.quadraticCurveTo(cx, cy, ex, ey)
-    ctx.stroke()
-    ctx.restore()
-  }
-
-  for (let i = 0; i < embers.length; i += 1) {
-    const ember = embers[i]
-    const life = (time * ember.speed + ember.lifeOffset) % 1
-    const dist = radius * (1.2 + ember.orbit * life)
-    const a = ember.angle + life * (1.4 + ember.orbit * 0.5)
-    const ex = x + Math.cos(a) * dist
-    const ey = y + Math.sin(a) * dist
-    const alpha = visibility * (1 - life) * 0.85
-    const size = ember.size * (1 - life * 0.35)
-
-    drawSpark(ctx, ex, ey, size, ember.tilt + life * 1.6, palette.ember, alpha)
-  }
-
   ctx.save()
-  ctx.globalAlpha = visibility
-  hardCircle(ctx, x, y, radius, 0.03, 1.0, time)
-  ctx.fillStyle = palette.dark
-  ctx.fill()
-
-  ctx.save()
-  hardCircle(ctx, x, y, radius, 0.03, 3.3, time)
-  ctx.clip()
-
-  ctx.fillStyle = palette.mid
-  hardCircle(ctx, x - radius * 0.14, y - radius * 0.1, radius * 0.92, 0.03, 2.1, time)
-  ctx.fill()
-
-  ctx.fillStyle = palette.light
-  hardCircle(ctx, x - radius * 0.2, y - radius * 0.22, radius * 0.62, 0.03, 5.1, time)
-  ctx.fill()
-
-  ctx.fillStyle = palette.flash
-  hardCircle(ctx, x - radius * 0.26, y - radius * 0.36, radius * 0.24, 0.06, 6.7, time)
-  ctx.fill()
+  ctx.globalCompositeOperation = 'lighter'
+  drawGlow(ctx, x, y, radius, palette.glow, alpha * glowStrength, 2.4)
   ctx.restore()
 
-  ctx.lineWidth = 3
-  ctx.strokeStyle = palette.outline
-  hardCircle(ctx, x, y, radius, 0.03, 1.0, time)
+  ctx.save()
+  ctx.globalAlpha = alpha
+
+  roughBlobPath(ctx, x, y, radius, time, tilt)
+  ctx.fillStyle = palette.shadow
+  ctx.fill()
+
+  ctx.save()
+  roughBlobPath(ctx, x, y, radius, time, tilt)
+  ctx.clip()
+
+  const body = ctx.createLinearGradient(
+    x - radius * 0.35,
+    y - radius * 0.4,
+    x + radius * 0.4,
+    y + radius * 0.5
+  )
+  body.addColorStop(0, palette.light)
+  body.addColorStop(0.45, palette.mid)
+  body.addColorStop(1, palette.shadow)
+  ctx.fillStyle = body
+  ctx.fillRect(x - radius * 1.3, y - radius * 1.3, radius * 2.6, radius * 2.6)
+
+  ctx.globalAlpha = alpha * 0.82
+  roughBlobPath(ctx, x - radius * 0.22, y - radius * 0.2, radius * 0.72, time, tilt + 2.1, 0.02)
+  ctx.fillStyle = palette.light
+  ctx.fill()
+
+  ctx.globalAlpha = alpha * 0.7
+  roughBlobPath(ctx, x - radius * 0.34, y - radius * 0.36, radius * 0.26, time, tilt + 5.2, 0.04)
+  ctx.fillStyle = palette.flash
+  ctx.fill()
+
+  ctx.globalAlpha = alpha * 0.38
+  ctx.strokeStyle = palette.flash
+  ctx.lineWidth = Math.max(1.3, radius * 0.08)
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.arc(x + radius * 0.06, y + radius * 0.04, radius * 0.6, -2.1, -0.55)
   ctx.stroke()
+
+  ctx.restore()
+
+  ctx.lineWidth = Math.max(2.4, radius * 0.08)
+  ctx.strokeStyle = palette.outline
+  roughBlobPath(ctx, x, y, radius, time, tilt)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawBridge(
+  ctx: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  r1: number,
+  x2: number,
+  y2: number,
+  r2: number,
+  bridgeT: number,
+  contactT: number
+) {
+  if (bridgeT <= 0.01) {
+    return
+  }
+
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const dist = Math.hypot(dx, dy)
+  if (dist < 0.001) {
+    return
+  }
+
+  const ux = dx / dist
+  const uy = dy / dist
+  const nx = -uy
+  const ny = ux
+
+  const minR = Math.min(r1, r2)
+  const anchor1 = r1 * mix(0.56, 0.78, bridgeT)
+  const anchor2 = r2 * mix(0.56, 0.78, bridgeT)
+  const thickness = minR * mix(0.14, 0.58, bridgeT * contactT)
+
+  const p1x = x1 + ux * anchor1
+  const p1y = y1 + uy * anchor1
+  const p2x = x2 - ux * anchor2
+  const p2y = y2 - uy * anchor2
+
+  const top1x = p1x + nx * thickness
+  const top1y = p1y + ny * thickness
+  const top2x = p2x + nx * thickness * 0.92
+  const top2y = p2y + ny * thickness * 0.92
+  const bot2x = p2x - nx * thickness * 0.92
+  const bot2y = p2y - ny * thickness * 0.92
+  const bot1x = p1x - nx * thickness
+  const bot1y = p1y - ny * thickness
+
+  const controlTopX = mix(top1x, top2x, 0.5) + nx * thickness * 0.5
+  const controlTopY = mix(top1y, top2y, 0.5) + ny * thickness * 0.5
+  const controlBotX = mix(bot1x, bot2x, 0.5) - nx * thickness * 0.5
+  const controlBotY = mix(bot1y, bot2y, 0.5) - ny * thickness * 0.5
+
+  const gradient = ctx.createLinearGradient(x1, y1, x2, y2)
+  gradient.addColorStop(0, '#6cc6ff')
+  gradient.addColorStop(0.45, '#9d8dff')
+  gradient.addColorStop(1, '#ff6ba3')
+
+  ctx.save()
+  ctx.globalAlpha = bridgeT * 0.95
+  ctx.fillStyle = gradient
+  ctx.beginPath()
+  ctx.moveTo(top1x, top1y)
+  ctx.quadraticCurveTo(controlTopX, controlTopY, top2x, top2y)
+  ctx.lineTo(bot2x, bot2y)
+  ctx.quadraticCurveTo(controlBotX, controlBotY, bot1x, bot1y)
+  ctx.closePath()
+  ctx.fill()
+
+  ctx.globalAlpha = bridgeT * 0.55
+  ctx.strokeStyle = '#eff7ff'
+  ctx.lineWidth = Math.max(1.1, minR * 0.05)
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(mix(p1x, p2x, 0.08), mix(p1y, p2y, 0.08))
+  ctx.quadraticCurveTo(
+    mix(p1x, p2x, 0.55) + nx * thickness * 0.18,
+    mix(p1y, p2y, 0.55) + ny * thickness * 0.18,
+    mix(p1x, p2x, 0.92),
+    mix(p1y, p2y, 0.92)
+  )
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawMergedDroplet(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  time: number,
+  alpha: number
+) {
+  if (alpha <= 0) {
+    return
+  }
+
+  const palette: DropletPalette = {
+    shadow: '#2a1f60',
+    mid: '#6845c9',
+    light: '#b289ff',
+    flash: '#f3eaff',
+    outline: '#170d3a',
+    glow: '#8b69ff',
+  }
+
+  drawDroplet(ctx, x, y, radius, time, alpha, palette, 1.4, 0.56)
+
+  ctx.save()
+  ctx.globalAlpha = alpha * 0.82
+  roughBlobPath(ctx, x, y, radius, time, 1.4)
+  ctx.clip()
+
+  for (let i = 0; i < 16; i += 1) {
+    const t = i / 15
+    const yOffset = (t - 0.5) * radius * 1.6
+    const swing = Math.sin(time * 1.4 + t * 8.4) * radius * 0.22
+    const thickness = radius * mix(0.1, 0.04, t)
+
+    const grad = ctx.createLinearGradient(x - radius, y, x + radius, y)
+    grad.addColorStop(0, 'rgba(85, 200, 255, 0.72)')
+    grad.addColorStop(0.48, 'rgba(202, 149, 255, 0.9)')
+    grad.addColorStop(1, 'rgba(255, 113, 176, 0.72)')
+
+    ctx.strokeStyle = grad
+    ctx.lineWidth = thickness
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(x - radius * 0.72, y + yOffset)
+    ctx.quadraticCurveTo(x + swing, y + yOffset - radius * 0.26, x + radius * 0.72, y + yOffset)
+    ctx.stroke()
+  }
+
   ctx.restore()
 }
 
@@ -251,48 +354,26 @@ export default function AnimePainterCanvas({ progress }: AnimePainterCanvasProps
       return
     }
 
-    const rng = seeded(42)
-    const clouds: CloudCluster[] = Array.from({ length: 9 }, () => ({
-      x: 0.08 + rng() * 0.84,
-      y: 0.06 + rng() * 0.55,
-      scale: 0.18 + rng() * 0.24,
-      drift: 0.03 + rng() * 0.06,
-      wobble: rng() * Math.PI * 2,
-      alpha: 0.22 + rng() * 0.34,
-      blobs: Array.from({ length: 7 + Math.floor(rng() * 6) }, () => ({
-        ox: (rng() - 0.5) * 1.7,
-        oy: (rng() - 0.5) * 0.75,
-        r: 0.34 + rng() * 0.62,
-      })),
+    const rand = seeded(19)
+
+    const wisps: Wisp[] = Array.from({ length: 24 }, () => ({
+      x: rand(),
+      y: rand() * 0.88,
+      length: 0.08 + rand() * 0.24,
+      width: 16 + rand() * 38,
+      angle: (rand() - 0.5) * 0.9,
+      drift: 0.03 + rand() * 0.08,
+      speed: 0.28 + rand() * 0.8,
+      alpha: 0.04 + rand() * 0.12,
+      tint: rand() < 0.38 ? 'blue' : rand() < 0.78 ? 'violet' : 'pink',
     }))
 
-    const strokes: BrushStroke[] = Array.from({ length: 48 }, () => ({
-      x: rng(),
-      y: rng() * 0.78,
-      len: 0.08 + rng() * 0.2,
-      width: 6 + rng() * 22,
-      rot: (rng() - 0.5) * 0.7,
-      alpha: 0.03 + rng() * 0.04,
-      speed: 0.2 + rng() * 0.6,
-      tint: rng(),
-    }))
-
-    const blueEmbers: Ember[] = Array.from({ length: 34 }, () => ({
-      orbit: 0.5 + rng() * 1.15,
-      angle: rng() * Math.PI * 2,
-      speed: 0.22 + rng() * 0.7,
-      size: 1.6 + rng() * 3,
-      lifeOffset: rng(),
-      tilt: rng() * Math.PI,
-    }))
-
-    const pinkEmbers: Ember[] = Array.from({ length: 34 }, () => ({
-      orbit: 0.45 + rng() * 1.1,
-      angle: rng() * Math.PI * 2,
-      speed: 0.24 + rng() * 0.68,
-      size: 1.4 + rng() * 2.8,
-      lifeOffset: rng(),
-      tilt: rng() * Math.PI,
+    const sparks: Spark[] = Array.from({ length: 70 }, () => ({
+      angle: rand() * Math.PI * 2,
+      radius: 0.36 + rand() * 0.88,
+      speed: 0.22 + rand() * 0.74,
+      phase: rand(),
+      size: 1.1 + rand() * 2.9,
     }))
 
     const grainCanvas = document.createElement('canvas')
@@ -303,16 +384,33 @@ export default function AnimePainterCanvas({ progress }: AnimePainterCanvasProps
       return
     }
 
-    const grainImage = grainCtx.createImageData(grainCanvas.width, grainCanvas.height)
-    for (let i = 0; i < grainImage.data.length; i += 4) {
-      const tone = Math.floor(212 + rng() * 43)
-      const alpha = Math.floor(8 + rng() * 26)
-      grainImage.data[i] = tone
-      grainImage.data[i + 1] = tone
-      grainImage.data[i + 2] = tone + 3
-      grainImage.data[i + 3] = alpha
+    const grain = grainCtx.createImageData(grainCanvas.width, grainCanvas.height)
+    for (let i = 0; i < grain.data.length; i += 4) {
+      const tone = Math.floor(182 + rand() * 70)
+      grain.data[i] = tone
+      grain.data[i + 1] = tone
+      grain.data[i + 2] = tone + 2
+      grain.data[i + 3] = Math.floor(8 + rand() * 28)
     }
-    grainCtx.putImageData(grainImage, 0, 0)
+    grainCtx.putImageData(grain, 0, 0)
+
+    const bluePalette: DropletPalette = {
+      shadow: '#0f2f78',
+      mid: '#2e7eff',
+      light: '#9edaff',
+      flash: '#f0faff',
+      outline: '#081a4a',
+      glow: '#52a7ff',
+    }
+
+    const pinkPalette: DropletPalette = {
+      shadow: '#6f1448',
+      mid: '#e63878',
+      light: '#ff9ec2',
+      flash: '#ffeaf3',
+      outline: '#3b0724',
+      glow: '#ff5b9a',
+    }
 
     let width = 0
     let height = 0
@@ -322,7 +420,6 @@ export default function AnimePainterCanvas({ progress }: AnimePainterCanvasProps
       width = window.innerWidth
       height = window.innerHeight
       dpr = Math.min(window.devicePixelRatio || 1, 2)
-
       canvas.width = Math.floor(width * dpr)
       canvas.height = Math.floor(height * dpr)
       canvas.style.width = `${width}px`
@@ -330,244 +427,179 @@ export default function AnimePainterCanvas({ progress }: AnimePainterCanvasProps
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
 
-    const drawBurst = (
-      centerX: number,
-      centerY: number,
-      radius: number,
-      spikes: number,
-      roughness: number,
-      color: string,
-      alpha: number,
-      rotation: number
-    ) => {
-      ctx.save()
-      ctx.translate(centerX, centerY)
-      ctx.rotate(rotation)
-      ctx.globalAlpha = alpha
-      ctx.fillStyle = color
-      ctx.beginPath()
-      for (let i = 0; i < spikes * 2; i += 1) {
-        const angle = (i / (spikes * 2)) * Math.PI * 2
-        const spike = i % 2 === 0 ? 1 : roughness
-        const r = radius * spike
-        const px = Math.cos(angle) * r
-        const py = Math.sin(angle) * r
-        if (i === 0) {
-          ctx.moveTo(px, py)
-        } else {
-          ctx.lineTo(px, py)
-        }
-      }
-      ctx.closePath()
-      ctx.fill()
-      ctx.restore()
-    }
-
     let raf = 0
+
     const render = (now: number) => {
       const time = now * 0.001
       const p = clamp(progressRef.current, 0, 1)
 
-      const converge = smoothstep(0.07, 0.28, p)
-      const swirl = smoothstep(0.24, 0.52, p) * (1 - smoothstep(0.57, 0.74, p))
-      const explosion = smoothstep(0.63, 0.76, p) * (1 - smoothstep(0.78, 0.9, p))
-      const dusk = smoothstep(0.5, 0.94, p)
-      const calm = smoothstep(0.8, 1, p)
+      const approach = smoothstep(0.05, 0.34, p)
+      const contact = smoothstep(0.21, 0.46, p)
+      const merge = smoothstep(0.38, 0.74, p)
+      const settle = smoothstep(0.74, 0.96, p)
 
-      const skyTopR = Math.round(mix(115, 14, dusk))
-      const skyTopG = Math.round(mix(194, 32, dusk))
-      const skyTopB = Math.round(mix(240, 71, dusk))
-      const skyBottomR = Math.round(mix(92, 44, dusk))
-      const skyBottomG = Math.round(mix(168, 66, dusk))
-      const skyBottomB = Math.round(mix(229, 146, dusk))
-
-      const skyGradient = ctx.createLinearGradient(0, 0, 0, height)
-      skyGradient.addColorStop(0, `rgb(${skyTopR}, ${skyTopG}, ${skyTopB})`)
-      skyGradient.addColorStop(0.62, `rgb(${skyBottomR}, ${skyBottomG}, ${skyBottomB})`)
-      skyGradient.addColorStop(
-        1,
-        `rgb(${Math.round(mix(126, 106, dusk))}, ${Math.round(mix(190, 114, dusk))}, ${Math.round(mix(235, 186, dusk))})`
-      )
-
-      ctx.fillStyle = skyGradient
+      const bg = ctx.createLinearGradient(0, 0, 0, height)
+      bg.addColorStop(0, '#030713')
+      bg.addColorStop(0.55, '#070c1a')
+      bg.addColorStop(1, '#0a0e1f')
+      ctx.fillStyle = bg
       ctx.fillRect(0, 0, width, height)
 
-      for (let i = 0; i < strokes.length; i += 1) {
-        const stroke = strokes[i]
-        const x = stroke.x * width + Math.sin(time * stroke.speed + i) * 20
-        const y = stroke.y * height + Math.cos(time * (stroke.speed * 0.5) + i) * 12
+      const centerX = width * 0.52
+      const centerY = height * 0.5
+      const minSide = Math.min(width, height)
+
+      const ambientA = ctx.createRadialGradient(
+        centerX - minSide * 0.1,
+        centerY - minSide * 0.2,
+        minSide * 0.02,
+        centerX - minSide * 0.1,
+        centerY - minSide * 0.2,
+        minSide * 0.55
+      )
+      ambientA.addColorStop(0, 'rgba(65, 157, 255, 0.24)')
+      ambientA.addColorStop(1, 'rgba(65, 157, 255, 0)')
+      ctx.fillStyle = ambientA
+      ctx.fillRect(0, 0, width, height)
+
+      const ambientB = ctx.createRadialGradient(
+        centerX + minSide * 0.05,
+        centerY + minSide * 0.2,
+        minSide * 0.02,
+        centerX + minSide * 0.05,
+        centerY + minSide * 0.2,
+        minSide * 0.5
+      )
+      ambientB.addColorStop(0, 'rgba(255, 73, 148, 0.16)')
+      ambientB.addColorStop(1, 'rgba(255, 73, 148, 0)')
+      ctx.fillStyle = ambientB
+      ctx.fillRect(0, 0, width, height)
+
+      for (let i = 0; i < wisps.length; i += 1) {
+        const wisp = wisps[i]
+        const x = wisp.x * width + Math.sin(time * wisp.speed + i * 0.7) * width * wisp.drift
+        const y = wisp.y * height + Math.cos(time * wisp.speed * 0.6 + i * 0.9) * 24
+        const len = wisp.length * width
+        const tint =
+          wisp.tint === 'blue'
+            ? 'rgba(118, 188, 255, '
+            : wisp.tint === 'pink'
+              ? 'rgba(255, 126, 176, '
+              : 'rgba(181, 165, 255, '
 
         ctx.save()
         ctx.translate(x, y)
-        ctx.rotate(stroke.rot + Math.sin(time * 0.4 + i) * 0.05)
-        ctx.globalAlpha = stroke.alpha
-        const tint = stroke.tint
-        const color = `rgb(${Math.round(mix(126, 188, tint))}, ${Math.round(mix(200, 228, tint))}, ${Math.round(mix(248, 255, tint))})`
-        ctx.strokeStyle = color
-        ctx.lineWidth = stroke.width
+        ctx.rotate(wisp.angle + Math.sin(time * 0.4 + i) * 0.08)
+        ctx.globalAlpha = wisp.alpha
+        ctx.strokeStyle = `${tint}${0.7 - settle * 0.3})`
+        ctx.lineWidth = wisp.width
         ctx.lineCap = 'round'
         ctx.beginPath()
-        ctx.moveTo(-stroke.len * width * 0.5, 0)
-        ctx.lineTo(stroke.len * width * 0.5, 0)
+        ctx.moveTo(-len * 0.5, 0)
+        ctx.lineTo(len * 0.5, 0)
         ctx.stroke()
         ctx.restore()
       }
 
-      for (let i = 0; i < clouds.length; i += 1) {
-        const cloud = clouds[i]
-        const cx = (cloud.x + Math.sin(time * cloud.drift + cloud.wobble) * 0.03) * width
-        const cy = cloud.y * height + Math.sin(time * (cloud.drift * 1.2) + cloud.wobble) * 18
-        const scale = cloud.scale * Math.min(width, height)
+      const blueStartX = width * 0.56
+      const blueStartY = height * 0.2
+      const pinkStartX = width * 0.48
+      const pinkStartY = height * 0.8
 
-        for (let j = 0; j < cloud.blobs.length; j += 1) {
-          const blob = cloud.blobs[j]
-          const bx = cx + blob.ox * scale
-          const by = cy + blob.oy * scale
-          const br = blob.r * scale * 0.6
+      const separation = minSide * 0.06 * (1 - merge)
+      const blueX = mix(blueStartX, centerX + separation * 0.35, approach)
+      const blueY = mix(blueStartY, centerY - separation * 0.22, approach)
+      const pinkX = mix(pinkStartX, centerX - separation * 0.3, approach)
+      const pinkY = mix(pinkStartY, centerY + separation * 0.24, approach)
 
-          ctx.save()
-          ctx.globalAlpha = cloud.alpha * (0.88 - j * 0.02)
-          ctx.fillStyle = `rgb(${Math.round(mix(214, 255, dusk))}, ${Math.round(mix(238, 248, dusk))}, 255)`
-          hardCircle(ctx, bx, by, br, 0.04, i * 0.9 + j * 1.7, time)
-          ctx.fill()
-          ctx.restore()
-        }
-      }
+      const radiusBlue = minSide * 0.066 * (1 + Math.sin(time * 1.8) * 0.035)
+      const radiusPink = minSide * 0.061 * (1 + Math.sin(time * 1.6 + 0.7) * 0.03)
 
-      const centerX = width * 0.52
-      const centerY = height * 0.47
-      const minSide = Math.min(width, height)
-      const blueStartX = width * 0.54
-      const blueStartY = height * 0.22
-      const pinkStartX = width * 0.5
-      const pinkStartY = height * 0.76
+      const distance = Math.hypot(blueX - pinkX, blueY - pinkY)
+      const proximity = 1 - clamp((distance - (radiusBlue + radiusPink) * 0.9) / (minSide * 0.24), 0, 1)
+      const bridgeT = contact * proximity * (1 - smoothstep(0.6, 0.82, p))
 
-      const blueX = mix(blueStartX, centerX, converge)
-      const blueY = mix(blueStartY, centerY, converge)
-      const pinkX = mix(pinkStartX, centerX, converge)
-      const pinkY = mix(pinkStartY, centerY, converge)
+      const individualAlpha = 1 - merge * 0.85
+      const mergedAlpha = smoothstep(0.45, 0.72, p)
 
-      const orbBase = minSide * 0.07
-      const orbExpand = smoothstep(0.18, 0.4, p) * minSide * 0.015
-      const orbVisibility = 1 - smoothstep(0.65, 0.75, p)
-
-      drawCelOrb(ctx, {
-        x: blueX,
-        y: blueY,
-        radius: orbBase + orbExpand,
+      drawDroplet(
+        ctx,
+        blueX,
+        blueY,
+        radiusBlue,
         time,
-        hue: swirl > 0.55 ? 'purple' : 'blue',
-        visibility: orbVisibility,
-        embers: blueEmbers,
-        auraStrength: 0.9 + swirl * 0.6,
-      })
+        individualAlpha,
+        bluePalette,
+        1.2,
+        0.64
+      )
+      drawDroplet(
+        ctx,
+        pinkX,
+        pinkY,
+        radiusPink,
+        time + 0.8,
+        individualAlpha,
+        pinkPalette,
+        2.4,
+        0.64
+      )
 
-      drawCelOrb(ctx, {
-        x: pinkX,
-        y: pinkY,
-        radius: orbBase * 0.82 + orbExpand,
-        time: time + 0.8,
-        hue: swirl > 0.55 ? 'purple' : 'pink',
-        visibility: orbVisibility,
-        embers: pinkEmbers,
-        auraStrength: 0.95 + swirl * 0.58,
-      })
+      drawBridge(ctx, blueX, blueY, radiusBlue, pinkX, pinkY, radiusPink, bridgeT, contact)
 
-      if (swirl > 0.03) {
-        const bands = 22
-        for (let i = 0; i < bands; i += 1) {
-          const a = (i / bands) * Math.PI * 2 + time * (0.7 + swirl * 1.8)
-          const radius = minSide * (0.09 + i * 0.009)
-          const bandWobble = Math.sin(time * 1.2 + i * 0.8) * minSide * 0.02
+      const mergedRadius = minSide * mix(0.07, 0.118, merge)
+      const mergedX = centerX + Math.sin(time * 0.8) * 4 * (1 - settle)
+      const mergedY = centerY + Math.cos(time * 0.7) * 3 * (1 - settle)
+      drawMergedDroplet(ctx, mergedX, mergedY, mergedRadius, time, mergedAlpha)
 
-          const sx = centerX + Math.cos(a) * (radius + bandWobble)
-          const sy = centerY + Math.sin(a) * (radius + bandWobble)
-          const ex = centerX + Math.cos(a + 0.45) * (radius * 1.28)
-          const ey = centerY + Math.sin(a + 0.45) * (radius * 1.28)
+      const sparkCenterX = mix(mix(blueX, pinkX, 0.5), mergedX, mergedAlpha)
+      const sparkCenterY = mix(mix(blueY, pinkY, 0.5), mergedY, mergedAlpha)
+      const sparkRadius = mix(radiusBlue, mergedRadius * 1.08, mergedAlpha)
+      const sparkColor = mergedAlpha > 0.5 ? '#ecd8ff' : '#cce8ff'
 
-          ctx.save()
-          ctx.globalAlpha = swirl * (0.36 - i * 0.012)
-          ctx.lineWidth = Math.max(1.5, 9 - i * 0.3)
-          ctx.lineCap = 'round'
-          const colorIndex = i % 3
-          ctx.strokeStyle =
-            colorIndex === 0 ? '#3399ff' : colorIndex === 1 ? '#ff3377' : '#9944ff'
+      for (let i = 0; i < sparks.length; i += 1) {
+        const spark = sparks[i]
+        const life = (time * spark.speed + spark.phase) % 1
+        const radius = sparkRadius * (spark.radius + life * 0.86)
+        const angle = spark.angle + life * 2.2
+        const x = sparkCenterX + Math.cos(angle) * radius
+        const y = sparkCenterY + Math.sin(angle) * radius
+        const alpha = (1 - life) * (0.65 - settle * 0.4) * (0.35 + mergedAlpha * 0.6)
+        drawSpark(ctx, x, y, spark.size * (1 - life * 0.26), angle, sparkColor, alpha)
+      }
+
+      if (mergedAlpha > 0.18) {
+        ctx.save()
+        ctx.globalAlpha = mergedAlpha * (0.58 - settle * 0.3)
+        ctx.strokeStyle = '#bea4ff'
+        for (let i = 0; i < 3; i += 1) {
+          const r = mergedRadius * (1.38 + i * 0.28 + Math.sin(time * 0.8 + i) * 0.02)
+          ctx.lineWidth = Math.max(1.1, mergedRadius * 0.04 - i * 0.4)
           ctx.beginPath()
-          ctx.moveTo(sx, sy)
-          ctx.quadraticCurveTo(centerX, centerY, ex, ey)
+          ctx.arc(mergedX, mergedY, r, 0, Math.PI * 2)
           ctx.stroke()
-          ctx.restore()
         }
-      }
-
-      if (explosion > 0.01) {
-        const burstRadius = minSide * mix(0.06, 0.29, explosion)
-        drawBurst(
-          centerX,
-          centerY,
-          burstRadius,
-          22,
-          0.62,
-          '#efe6ff',
-          explosion * 0.9,
-          time * 0.7
-        )
-        drawBurst(
-          centerX,
-          centerY,
-          burstRadius * 1.3,
-          24,
-          0.72,
-          '#aa55ff',
-          explosion * 0.4,
-          -time * 0.45
-        )
-
-        ctx.save()
-        ctx.globalAlpha = explosion * 0.38
-        ctx.strokeStyle = '#f2ddff'
-        ctx.lineWidth = minSide * 0.008
-        ctx.beginPath()
-        ctx.arc(centerX, centerY, burstRadius * 1.6, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.restore()
-      }
-
-      if (calm > 0.05) {
-        const moonX = width * 0.23
-        const moonY = height * 0.18
-        const moonR = minSide * 0.07
-
-        ctx.save()
-        ctx.globalAlpha = calm * 0.85
-        ctx.fillStyle = '#f4eeff'
-        hardCircle(ctx, moonX, moonY, moonR, 0.02, 1.2, time * 0.2)
-        ctx.fill()
-
-        ctx.fillStyle = `rgb(${Math.round(mix(95, 17, calm))}, ${Math.round(mix(166, 32, calm))}, ${Math.round(mix(239, 90, calm))})`
-        hardCircle(ctx, moonX + moonR * 0.36, moonY - moonR * 0.04, moonR * 0.95, 0.02, 3.4, time * 0.2)
-        ctx.fill()
         ctx.restore()
       }
 
       const vignette = ctx.createRadialGradient(
         width * 0.5,
-        height * 0.4,
-        minSide * 0.1,
+        height * 0.46,
+        minSide * 0.09,
         width * 0.5,
         height * 0.5,
-        minSide * 0.75
+        minSide * 0.85
       )
       vignette.addColorStop(0, 'rgba(0, 0, 0, 0)')
-      vignette.addColorStop(1, `rgba(10, 5, 25, ${mix(0.18, 0.52, dusk)})`)
+      vignette.addColorStop(1, 'rgba(2, 3, 10, 0.72)')
       ctx.fillStyle = vignette
       ctx.fillRect(0, 0, width, height)
 
-      const pattern = ctx.createPattern(grainCanvas, 'repeat')
-      if (pattern) {
+      const grainPattern = ctx.createPattern(grainCanvas, 'repeat')
+      if (grainPattern) {
         ctx.save()
         ctx.globalAlpha = 0.18
-        ctx.fillStyle = pattern
+        ctx.fillStyle = grainPattern
         ctx.fillRect(0, 0, width, height)
         ctx.restore()
       }
@@ -577,7 +609,6 @@ export default function AnimePainterCanvas({ progress }: AnimePainterCanvasProps
 
     resize()
     raf = window.requestAnimationFrame(render)
-
     window.addEventListener('resize', resize)
 
     return () => {
@@ -586,11 +617,5 @@ export default function AnimePainterCanvas({ progress }: AnimePainterCanvasProps
     }
   }, [])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="h-full w-full"
-      aria-hidden
-    />
-  )
+  return <canvas ref={canvasRef} className="h-full w-full" aria-hidden />
 }

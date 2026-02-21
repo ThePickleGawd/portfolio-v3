@@ -3,17 +3,18 @@
 import { Canvas } from '@react-three/fiber'
 import { Suspense } from 'react'
 import EnergyScene from './EnergyScene'
+import { isMobile } from '@/lib/store'
 
 export default function HeroCanvas() {
   return (
     <Canvas
       camera={{ position: [0, 0, 8], fov: 60 }}
       gl={{
-        antialias: true,
+        antialias: false,
         alpha: false,
-        powerPreference: 'high-performance',
+        powerPreference: 'low-power',
       }}
-      dpr={[1, 2]}
+      dpr={isMobile ? [1, 1] : [1, 1.25]}
     >
       <Suspense fallback={null}>
         <EnergyScene />
