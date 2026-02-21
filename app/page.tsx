@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import dynamic from 'next/dynamic'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -18,6 +18,21 @@ const HeroCanvas = dynamic(() => import('@/components/HeroCanvas'), {
   ),
 })
 
+function HeroLetter({ char, index }: { char: string; index: number }) {
+  if (char === ' ') {
+    return <span className="inline-block w-[0.28em]" aria-hidden />
+  }
+
+  return (
+    <span
+      className="hero-char inline-block"
+      style={{ animationDelay: `${index * 26}ms` } as CSSProperties}
+    >
+      {char}
+    </span>
+  )
+}
+
 export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -31,7 +46,7 @@ export default function Home() {
       scrollTrigger: {
         trigger: scrollRef.current,
         start: 'top top',
-        end: '12% top',
+        end: '9% top',
         scrub: true,
       },
     })
@@ -42,7 +57,7 @@ export default function Home() {
       scrollTrigger: {
         trigger: scrollRef.current,
         start: 'top top',
-        end: '8% top',
+        end: '6% top',
         scrub: true,
       },
     })
@@ -52,7 +67,7 @@ export default function Home() {
       opacity: 0,
       scrollTrigger: {
         trigger: scrollRef.current,
-        start: '88% top',
+        start: '85% top',
         end: 'bottom bottom',
         scrub: true,
       },
@@ -85,11 +100,15 @@ export default function Home() {
       {/* Scroll spacer — drives the energy orb animation */}
       <div
         ref={scrollRef}
-        className="relative z-10 h-[500vh] pointer-events-none"
+        className="relative z-10 h-[700vh] pointer-events-none"
       >
         <div className="h-screen flex flex-col items-center justify-center">
-          <h1 className="hero-title font-[var(--font-syne)] text-6xl sm:text-7xl md:text-9xl font-extrabold tracking-[-0.04em] text-white/90 text-center pointer-events-auto select-none">
-            DYLAN LU
+          <h1
+            className="hero-title font-[var(--font-syne)] text-6xl sm:text-7xl md:text-9xl font-extrabold tracking-[-0.04em] text-white/90 text-center pointer-events-auto select-none"
+          >
+            {'DYLAN LU'.split('').map((char, i) => (
+              <HeroLetter key={`${char}-${i}`} char={char} index={i} />
+            ))}
           </h1>
           <p className="hero-subtitle mt-5 text-sm text-white/25 tracking-[0.35em] uppercase pointer-events-auto select-none">
             Scroll to begin

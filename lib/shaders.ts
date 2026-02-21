@@ -236,6 +236,15 @@ void main() {
   pos.x += sin(angle) * 0.5 * easedT;
   pos.z += cos(angle) * 0.5 * easedT;
 
+  // Keep subtle motion in the late timeline so the end doesn't feel frozen.
+  float linger = smoothstep(0.78, 1.0, t);
+  pos += aDirection * sin(uTime * (0.8 + aSpeed * 0.45) + aPhase * 1.7) * 0.55 * linger;
+  pos += vec3(
+    sin(uTime * 0.6 + aPhase) * 0.22 * linger,
+    cos(uTime * 0.5 + aPhase * 1.3) * 0.14 * linger,
+    sin(uTime * 0.75 + aPhase * 0.8) * 0.2 * linger
+  );
+
   vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
 
   float size = aSize * (1.0 - easedT * 0.5);
@@ -349,8 +358,11 @@ export const energyWashShader = {
       float edgeNoise = fbm(vec3(flow * 8.0, uTime * 0.22)) * 0.5 + 0.5;
       float edgeOffset = (edgeNoise - 0.5) * 0.09;
       float radius = max(uWashRadius, 0.0001);
-      float washMask = 1.0 - smoothstep(radius - 0.08 + edgeOffset, radius + 0.08 + edgeOffset, dist);
-      washMask *= smoothstep(0.01, 0.04, uWashRadius);
+      float washMask = 1.0;
+      if (uWashRadius <= 1.0) {
+        washMask = 1.0 - smoothstep(radius - 0.08 + edgeOffset, radius + 0.08 + edgeOffset, dist);
+        washMask *= smoothstep(0.01, 0.04, uWashRadius);
+      }
 
       float hotCore = smoothstep(1.0, 2.0, uIntensity) * exp(-dist * 17.0);
       ink = mix(ink, whiteHot, clamp(hotCore, 0.0, 1.0));

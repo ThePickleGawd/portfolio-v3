@@ -7,6 +7,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { scrollProgress, isMobile } from '@/lib/store'
 import {
   orbVertexShader,
@@ -17,6 +18,7 @@ import {
   particleFragmentShader,
   explosionVertexShader,
   explosionFragmentShader,
+  energyWashShader,
 } from '@/lib/shaders'
 
 // ── Constants ────────────────────────────────────────
@@ -146,20 +148,28 @@ function EnergyOrb({
   particleColor: string
 }) {
   const groupRef = useRef<THREE.Group>(null!)
+  const glowMeshRef = useRef<THREE.Mesh>(null!)
   const orbMatRef = useRef<THREE.ShaderMaterial>(null!)
   const glowMatRef = useRef<THREE.ShaderMaterial>(null!)
   const particleMatRef = useRef<THREE.ShaderMaterial>(null!)
 
   const orbColor = useMemo(() => new THREE.Color(color), [color])
   const pColor = useMemo(() => new THREE.Color(particleColor), [particleColor])
+  const comfortColor = useMemo(
+    () => new THREE.Color(startX > 0 ? '#8fbaff' : '#ffa5bf'),
+    [startX]
+  )
   const purpleColor = useMemo(() => new THREE.Color('#9900ff'), [])
   const _cOrb = useMemo(() => new THREE.Color(), [])
   const _cP = useMemo(() => new THREE.Color(), [])
+  const _cGlow = useMemo(() => new THREE.Color(), [])
+  const introGlowScale = useMemo(() => (isMobile ? 4.8 : 6.0), [])
 
   useFrame(({ clock }) => {
     const p = scrollProgress.current
     const time = clock.elapsedTime
     const sign = startX > 0 ? 1 : -1
+    const introT = 1.0 - smoothstep(0.0, 0.02, p)
 
     // ── Position ──
     let x = startX
@@ -178,22 +188,22 @@ function EnergyOrb({
       y = lerp(startY, sign * 0.18, t)
       z = lerp(0, sign * 0.2, t)
     } else if (p <= 0.66) {
-      // Orbital mixing around center and tightening into burst
-      let radius = 0.45
-      if (p <= 0.30) {
-        radius = lerp(0.85, 0.45, smoothstep(0.22, 0.30, p))
-      } else if (p <= 0.62) {
-        radius = 0.45 + Math.sin(time * 0.9 + sign * 1.6) * 0.04
-      } else {
-        radius = lerp(0.45, 0.05, smoothstep(0.62, 0.66, p))
-      }
+      // Orbital mixing with 2 extra turns, accelerating while radius contracts.
+      const mixT = smoothstep(0.22, 0.66, p)
+      const accelT = Math.pow(mixT, 1.7)
+      const turns = 3.5 // previous ~1.5 turns + 2 extra
+      const turnProgress = accelT * turns
 
-      const orbitSpin = time * (1.2 + smoothstep(0.22, 0.50, p) * 0.9)
-      const orbitArc = smoothstep(0.22, 0.66, p) * Math.PI * 3.0
+      let radius = 0.85 * Math.pow(0.72, turnProgress)
+      radius = Math.max(0.05, radius)
+      radius = lerp(radius, 0.05, smoothstep(0.60, 0.66, p))
+
+      const orbitSpin = time * (0.55 + mixT * 1.25)
+      const orbitArc = turnProgress * Math.PI * 2.0
       const angle = orbitSpin + orbitArc + (sign > 0 ? 0 : Math.PI)
       x = Math.cos(angle) * radius
-      y = Math.sin(angle * 1.15) * (0.16 + radius * 0.25)
-      z = Math.sin(angle) * radius * 0.9
+      y = Math.sin(angle * 1.2) * (0.12 + radius * 0.28)
+      z = Math.sin(angle * 1.03 + sign * 0.35) * radius * 0.95
     } else {
       x = 0
       y = 0
@@ -204,6 +214,7 @@ function EnergyOrb({
       groupRef.current.position.x = x
       groupRef.current.position.y = y
       groupRef.current.position.z = z
+      groupRef.current.rotation.set(0, 0, 0)
     }
 
     // ── Scale ──
@@ -231,6 +242,7 @@ function EnergyOrb({
     const mergeT = p < 0.66 ? smoothstep(0.18, 0.42, p) : 1.0
     _cOrb.copy(orbColor).lerp(purpleColor, mergeT)
     _cP.copy(pColor).lerp(purpleColor, mergeT)
+    _cGlow.copy(_cOrb).lerp(comfortColor, introT * 0.92)
 
     // ── Materials ──
     let intensity = 1.0 + smoothstep(0.12, 0.30, p) * 0.9
@@ -238,15 +250,20 @@ function EnergyOrb({
     const preExplodeFade = 1.0 - smoothstep(0.62, 0.66, p)
     const endFade = p > 0.78 ? 1.0 - smoothstep(0.78, 0.92, p) : 1.0
     const fade = preExplodeFade * endFade
+    const introGlowIntensity = lerp(1.0, 0.38, introT)
 
     if (orbMatRef.current) {
       orbMatRef.current.uniforms.uTime.value = time
       orbMatRef.current.uniforms.uColor.value.copy(_cOrb)
       orbMatRef.current.uniforms.uIntensity.value = intensity * fade
     }
+    if (glowMeshRef.current) {
+      const baseGlowScale = lerp(1.8, introGlowScale, introT)
+      glowMeshRef.current.scale.setScalar(baseGlowScale)
+    }
     if (glowMatRef.current) {
-      glowMatRef.current.uniforms.uColor.value.copy(_cOrb)
-      glowMatRef.current.uniforms.uIntensity.value = intensity * 0.7 * fade
+      glowMatRef.current.uniforms.uColor.value.copy(_cGlow)
+      glowMatRef.current.uniforms.uIntensity.value = intensity * 0.7 * fade * introGlowIntensity
     }
     if (particleMatRef.current) {
       particleMatRef.current.uniforms.uTime.value = time
@@ -277,7 +294,7 @@ function EnergyOrb({
         />
       </mesh>
 
-      <mesh scale={[1.8, 1.8, 1.8]}>
+      <mesh ref={glowMeshRef} scale={[1.8, 1.8, 1.8]}>
         <sphereGeometry args={[0.18, 32, 32]} />
         <shaderMaterial
           ref={glowMatRef}
@@ -322,7 +339,7 @@ function ExplosionParticles() {
   useFrame(({ clock }) => {
     const p = scrollProgress.current
     if (matRef.current) {
-      matRef.current.uniforms.uProgress.value = smoothstep(0.66, 0.82, p)
+      matRef.current.uniforms.uProgress.value = smoothstep(0.66, 0.92, p)
       matRef.current.uniforms.uTime.value = clock.elapsedTime
     }
   })
@@ -390,6 +407,7 @@ function NativeBloom() {
   const { gl, scene, camera, size } = useThree()
   const composerRef = useRef<EffectComposer | null>(null)
   const bloomRef = useRef<UnrealBloomPass | null>(null)
+  const introWashRef = useRef<ShaderPass | null>(null)
 
   useEffect(() => {
     const composer = new EffectComposer(gl)
@@ -403,11 +421,15 @@ function NativeBloom() {
     )
     composer.addPass(bloom)
 
+    const introWash = new ShaderPass(energyWashShader)
+    composer.addPass(introWash)
+
     composer.addPass(new OutputPass())
     composer.setSize(size.width, size.height)
 
     composerRef.current = composer
     bloomRef.current = bloom
+    introWashRef.current = introWash
 
     return () => {
       composer.dispose()
@@ -427,7 +449,10 @@ function NativeBloom() {
 
     // ── Bloom strength ──
     let strength = 0.8
-    if (p > 0.22 && p <= 0.62) {
+    const introBlend = 1.0 - smoothstep(0.0, 0.14, p)
+    if (introBlend > 0) {
+      strength = lerp(1.55, 0.8, 1.0 - introBlend)
+    } else if (p > 0.22 && p <= 0.62) {
       strength = 0.8 + smoothstep(0.22, 0.34, p) * 0.75
     } else if (p > 0.56 && p <= 0.66) {
       strength = 1.55 - smoothstep(0.56, 0.66, p) * 0.45
@@ -439,6 +464,16 @@ function NativeBloom() {
       strength = Math.max(0, 0.8 * (1 - smoothstep(0.85, 1.0, p)))
     }
     bloomRef.current.strength = strength
+
+    // ── Intro ink-in-water wash: fills hero at start, fades into orb timeline ──
+    if (introWashRef.current) {
+      const u = introWashRef.current.uniforms
+      const swirlPulse = 0.5 + 0.5 * Math.sin(clock.elapsedTime * 0.55)
+      u.uWashRadius.value = (1.22 + swirlPulse * 0.18) * introBlend
+      u.uSwirlStrength.value = (0.65 + swirlPulse * 0.45) * introBlend
+      u.uIntensity.value = (1.18 + swirlPulse * 0.26) * introBlend
+      u.uTime.value = clock.elapsedTime
+    }
 
     composerRef.current.render(delta)
   }, 1)
