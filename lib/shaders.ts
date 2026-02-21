@@ -111,13 +111,13 @@ void main() {
 
   float fresnel = pow(1.0 - abs(dot(viewDir, normal)), 3.0);
 
-  vec3 core = uColor * 2.0;
-  vec3 edge = (uColor * 1.5 + vec3(0.4)) * fresnel * 3.0;
+  vec3 core = uColor * 1.5;
+  vec3 edge = (uColor * 1.2 + vec3(0.3)) * fresnel * 2.0;
 
   vec3 finalColor = mix(core, edge, fresnel) * uIntensity;
-  finalColor += uColor * abs(vNoise) * 3.0;
+  finalColor += uColor * abs(vNoise) * 1.5;
 
-  float alpha = 0.5 + fresnel * 0.5;
+  float alpha = 0.7 + fresnel * 0.3;
 
   gl_FragColor = vec4(finalColor, alpha);
 }
@@ -147,8 +147,8 @@ void main() {
   vec3 viewDir = normalize(vViewPosition);
   float fresnel = pow(1.0 - abs(dot(viewDir, normalize(vNormal))), 2.5);
 
-  vec3 glowColor = uColor * fresnel * uIntensity * 2.5;
-  float alpha = fresnel * 0.4 * uIntensity;
+  vec3 glowColor = uColor * fresnel * uIntensity * 1.5;
+  float alpha = fresnel * 0.3 * uIntensity;
 
   gl_FragColor = vec4(glowColor, alpha);
 }
@@ -209,7 +209,7 @@ void main() {
 
   float alpha = smoothstep(0.5, 0.05, d) * vAlpha;
 
-  gl_FragColor = vec4(uColor * 2.5, alpha);
+  gl_FragColor = vec4(uColor * 1.5, alpha);
 }
 `
 
@@ -259,3 +259,104 @@ void main() {
   gl_FragColor = vec4(uColor * 3.0, alpha);
 }
 `
+
+// ---- Energy Wash Post-Processing (ink-in-water) ----
+export const energyWashShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uWashRadius: { value: 0.0 },
+    uSwirlStrength: { value: 0.0 },
+    uIntensity: { value: 0.0 },
+    uTime: { value: 0.0 },
+  },
+
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+
+  fragmentShader: /* glsl */ `
+    ${simplexNoise}
+
+    uniform sampler2D tDiffuse;
+    uniform float uWashRadius;
+    uniform float uSwirlStrength;
+    uniform float uIntensity;
+    uniform float uTime;
+
+    varying vec2 vUv;
+
+    float fbm(vec3 p) {
+      float value = 0.0;
+      float amplitude = 0.5;
+      float frequency = 1.0;
+      for (int i = 0; i < 4; i++) {
+        value += amplitude * snoise(p * frequency);
+        frequency *= 2.0;
+        amplitude *= 0.5;
+      }
+      return value;
+    }
+
+    void main() {
+      vec4 scene = texture2D(tDiffuse, vUv);
+
+      vec2 centered = vUv - 0.5;
+      float dist = length(centered);
+      float mixMotion = smoothstep(0.0, 1.0, uSwirlStrength);
+      vec2 drift = vec2(
+        uTime * (0.06 + mixMotion * 0.03),
+        -uTime * (0.05 + mixMotion * 0.04)
+      );
+
+      vec2 warpA = vec2(
+        fbm(vec3(centered * 3.0 + drift, 0.7)),
+        fbm(vec3(centered * 3.0 - drift, 2.2))
+      );
+      vec2 warpB = vec2(
+        fbm(vec3((centered + warpA * 0.22) * 5.4 + vec2(-uTime * 0.04, uTime * 0.08), 4.4)),
+        fbm(vec3((centered - warpA * 0.20) * 5.2 + vec2(uTime * 0.07, -uTime * 0.05), 7.1))
+      );
+      vec2 flow = centered + warpA * 0.24 + warpB * 0.14;
+
+      float orbit = uTime * (0.45 + mixMotion * 0.35);
+      vec2 centerA = vec2(cos(orbit), sin(orbit * 1.15)) * (0.10 + uWashRadius * 0.32);
+      vec2 centerB = -centerA;
+
+      float blobScale = 0.12 + uWashRadius * 0.42;
+      float blueBlob = exp(-pow(length(flow - centerA) / blobScale, 2.0));
+      float redBlob = exp(-pow(length(flow - centerB) / blobScale, 2.0));
+
+      float field = fbm(vec3(flow * 4.2, uTime * 0.14)) * 0.5 + 0.5;
+      float turbulence = fbm(vec3(flow * 7.0 + vec2(1.7, -2.3), uTime * 0.2)) * 0.5 + 0.5;
+
+      float blueW = blueBlob * (0.7 + field * 0.6);
+      float redW = redBlob * (0.7 + (1.0 - field) * 0.45 + turbulence * 0.35);
+      float purpleW = smoothstep(0.05, 1.1, blueBlob * redBlob * 1.8 + turbulence * 0.25);
+
+      vec3 blue = vec3(0.05, 0.3, 1.0);
+      vec3 red = vec3(1.0, 0.05, 0.3);
+      vec3 purple = vec3(0.55, 0.0, 1.0);
+      vec3 whiteHot = vec3(1.0, 0.9, 0.95);
+
+      float weightSum = redW + blueW + purpleW + 0.0001;
+      vec3 ink = (red * redW + blue * blueW + purple * purpleW) / weightSum;
+      ink *= 0.7 + field * 0.6;
+
+      float edgeNoise = fbm(vec3(flow * 8.0, uTime * 0.22)) * 0.5 + 0.5;
+      float edgeOffset = (edgeNoise - 0.5) * 0.09;
+      float radius = max(uWashRadius, 0.0001);
+      float washMask = 1.0 - smoothstep(radius - 0.08 + edgeOffset, radius + 0.08 + edgeOffset, dist);
+      washMask *= smoothstep(0.01, 0.04, uWashRadius);
+
+      float hotCore = smoothstep(1.0, 2.0, uIntensity) * exp(-dist * 17.0);
+      ink = mix(ink, whiteHot, clamp(hotCore, 0.0, 1.0));
+
+      vec3 effect = ink * washMask * uIntensity;
+      gl_FragColor = vec4(scene.rgb + effect * 0.55, 1.0);
+    }
+  `,
+}
