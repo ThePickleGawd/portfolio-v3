@@ -64,3 +64,66 @@ body {
 .domain-text {
   animation: domain-pulse 3s ease-in-out infinite;
 }
+
+/* ── Experiment 3 domain layers ───────────────────── */
+.anime-domain-bg {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(177, 112, 255, 0.34), transparent 44%),
+    radial-gradient(circle at 20% 22%, rgba(84, 164, 255, 0.2), transparent 40%),
+    radial-gradient(circle at 75% 80%, rgba(255, 86, 148, 0.15), transparent 48%),
+    linear-gradient(160deg, #07070e 0%, #0d0b18 45%, #090713 100%);
+  animation: domain-bg-drift 22s ease-in-out infinite alternate;
+}
+
+.anime-noise {
+  background-image:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 70% 63%, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 130px 130px, 170px 170px;
+}
+
+.memory-ring {
+  animation: memory-ring-spin linear infinite;
+}
+
+.memory-ring-reverse {
+  animation-direction: reverse;
+}
+
+.memory-card {
+  animation: memory-card-breathe 3.4s ease-in-out infinite;
+}
+
+.domain-pulse-ring {
+  animation: domain-ring-pulse 4s ease-in-out infinite;
+}
+
+.domain-pulse-ring-alt {
+  animation: domain-ring-pulse 6.2s ease-in-out infinite;
+}
+
+@keyframes memory-ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes memory-card-breathe {
+  0%, 100% { filter: saturate(1) brightness(0.95); }
+  50% { filter: saturate(1.22) brightness(1.06); }
+}
+
+@keyframes domain-ring-pulse {
+  0%, 100% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+@keyframes domain-bg-drift {
+  0% { transform: scale(1) translate3d(0, 0, 0); }
+  100% { transform: scale(1.08) translate3d(-2.5%, -1.5%, 0); }
+}

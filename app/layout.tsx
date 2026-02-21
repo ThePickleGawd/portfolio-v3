@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Syne, Outfit } from 'next/font/google'
+import ExperimentNav from '@/components/ExperimentNav'
 import './globals.css'
 
 const syne = Syne({
@@ -27,7 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${syne.variable} ${outfit.variable}`}>
-      <body className="font-[var(--font-outfit)] antialiased">{children}</body>
+      <body className="font-[var(--font-outfit)] antialiased">
+        <ExperimentNav />
+        {children}
+      </body>
     </html>
   )
 }
