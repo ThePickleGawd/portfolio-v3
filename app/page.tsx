@@ -9,7 +9,7 @@ import {
 import dynamic from 'next/dynamic'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { scrollProgress } from '@/lib/store'
+import { scrollProgress, sceneProgress } from '@/lib/store'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -34,9 +34,84 @@ function HeroLetter({ char, index }: { char: string; index: number }) {
   )
 }
 
+function TriggerCordIcon() {
+  return (
+    <svg
+      width="44"
+      height="72"
+      viewBox="0 0 44 72"
+      fill="none"
+      className="hero-trigger-icon"
+      aria-hidden
+    >
+      <path
+        d="M22 4V41"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M22 41L10 63H34L22 41Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const wiggleRafRef = useRef<Map<HTMLSpanElement, number>>(new Map())
+  const autoScrollRafRef = useRef<number | null>(null)
+  const autoScrollActiveRef = useRef(false)
+
+  const cancelAutoScroll = () => {
+    if (autoScrollRafRef.current !== null) {
+      cancelAnimationFrame(autoScrollRafRef.current)
+      autoScrollRafRef.current = null
+    }
+    autoScrollActiveRef.current = false
+  }
+
+  const handleTriggerPull = () => {
+    if (autoScrollActiveRef.current) {
+      return
+    }
+
+    const startY = window.scrollY
+    const targetY =
+      document.documentElement.scrollHeight - window.innerHeight
+    const distance = Math.max(0, targetY - startY)
+
+    if (distance < 8) {
+      return
+    }
+
+    const durationMs = Math.min(7000, Math.max(2400, distance * 0.9))
+    const startTime = performance.now()
+    autoScrollActiveRef.current = true
+
+    const step = (now: number) => {
+      const elapsed = now - startTime
+      const t = Math.min(1, elapsed / durationMs)
+      const eased =
+        t < 0.5
+          ? 4 * t * t * t
+          : 1 - Math.pow(-2 * t + 2, 3) / 2
+      window.scrollTo(0, startY + distance * eased)
+
+      if (t < 1 && autoScrollActiveRef.current) {
+        autoScrollRafRef.current = requestAnimationFrame(step)
+      } else {
+        autoScrollRafRef.current = null
+        autoScrollActiveRef.current = false
+      }
+    }
+
+    autoScrollRafRef.current = requestAnimationFrame(step)
+  }
 
   const triggerLetterWiggle = (letter: HTMLSpanElement) => {
     const wiggleRafs = wiggleRafRef.current
@@ -75,6 +150,11 @@ export default function Home() {
 
   useEffect(() => {
     const wiggleRafs = wiggleRafRef.current
+    const cancelOnIntent = () => {
+      if (autoScrollActiveRef.current) {
+        cancelAutoScroll()
+      }
+    }
 
     // ── Hero text fade on scroll ──
     gsap.to('.hero-title', {
@@ -89,17 +169,6 @@ export default function Home() {
       },
     })
 
-    gsap.to('.hero-subtitle', {
-      opacity: 0,
-      y: -30,
-      scrollTrigger: {
-        trigger: scrollRef.current,
-        start: 'top top',
-        end: '6% top',
-        scrub: true,
-      },
-    })
-
     // ── Scroll progress → R3F scene ──
     const trigger = ScrollTrigger.create({
       trigger: scrollRef.current,
@@ -108,12 +177,23 @@ export default function Home() {
       scrub: 0.6,
       onUpdate: (self) => {
         scrollProgress.current = self.progress
+        sceneProgress.current = self.progress
       },
     })
+
+    window.addEventListener('wheel', cancelOnIntent, { passive: true })
+    window.addEventListener('touchstart', cancelOnIntent, { passive: true })
+    window.addEventListener('keydown', cancelOnIntent)
+    window.addEventListener('pointerdown', cancelOnIntent)
 
     return () => {
       wiggleRafs.forEach((rafId) => cancelAnimationFrame(rafId))
       wiggleRafs.clear()
+      cancelAutoScroll()
+      window.removeEventListener('wheel', cancelOnIntent)
+      window.removeEventListener('touchstart', cancelOnIntent)
+      window.removeEventListener('keydown', cancelOnIntent)
+      window.removeEventListener('pointerdown', cancelOnIntent)
       trigger.kill()
       ScrollTrigger.getAll().forEach((t) => t.kill())
     }
@@ -141,29 +221,15 @@ export default function Home() {
               <HeroLetter key={`${char}-${i}`} char={char} index={i} />
             ))}
           </h1>
-          <p className="hero-subtitle mt-5 text-sm text-white/25 tracking-[0.35em] uppercase pointer-events-auto select-none">
-            Scroll to begin
-          </p>
-          <div className="scroll-indicator mt-10 pointer-events-auto">
-            <svg
-              width="20"
-              height="30"
-              viewBox="0 0 20 30"
-              fill="none"
-              className="text-white/20"
-            >
-              <rect
-                x="1"
-                y="1"
-                width="18"
-                height="28"
-                rx="9"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <circle cx="10" cy="10" r="2.5" fill="currentColor" />
-            </svg>
-          </div>
+
+          <button
+            type="button"
+            aria-label="Pull trigger to scroll to bottom"
+            className="hero-trigger-button mt-8 pointer-events-auto text-white/38"
+            onClick={handleTriggerPull}
+          >
+            <TriggerCordIcon />
+          </button>
         </div>
       </div>
 

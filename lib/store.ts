@@ -1,5 +1,6 @@
 // Shared scroll progress — written by GSAP ScrollTrigger, read by R3F scene
 export const scrollProgress = { current: 0 }
+export const sceneProgress = { current: 0 }
 
 // Mobile detection
 export const isMobile =

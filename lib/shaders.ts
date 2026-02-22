@@ -111,11 +111,11 @@ void main() {
 
   float fresnel = pow(1.0 - abs(dot(viewDir, normal)), 3.0);
 
-  vec3 core = uColor * 1.5;
-  vec3 edge = (uColor * 1.2 + vec3(0.3)) * fresnel * 2.0;
+  vec3 core = uColor * 1.18;
+  vec3 edge = (uColor * 1.02 + vec3(0.12)) * fresnel * 1.25;
 
   vec3 finalColor = mix(core, edge, fresnel) * uIntensity;
-  finalColor += uColor * abs(vNoise) * 1.5;
+  finalColor += uColor * abs(vNoise) * 0.85;
 
   float alpha = 0.7 + fresnel * 0.3;
 

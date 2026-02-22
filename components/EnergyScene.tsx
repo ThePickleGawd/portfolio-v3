@@ -8,7 +8,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
-import { scrollProgress, isMobile } from '@/lib/store'
+import { scrollProgress, sceneProgress, isMobile } from '@/lib/store'
 import {
   orbVertexShader,
   orbFragmentShader,
@@ -26,6 +26,9 @@ const PARTICLE_COUNT = isMobile ? 120 : 280
 const EXPLOSION_COUNT = isMobile ? 180 : 560
 const DEPTH_STAR_COUNT = isMobile ? 360 : 900
 const ORB_RADIUS = 0.12
+const EXPLODE_START = 0.66
+const EXPLODE_AUTOPLAY_END = 0.85
+const EXPLODE_AUTOPLAY_DURATION = 1.0
 
 const depthVeilVertexShader = /* glsl */ `
 varying vec2 vUv;
@@ -112,7 +115,7 @@ function DepthBackdrop() {
   }, [starPositions, starColors])
 
   useFrame(({ clock }) => {
-    const p = scrollProgress.current
+    const p = sceneProgress.current
     const fade = 1.0 - smoothstep(0.88, 1.0, p)
     const t = clock.elapsedTime
 
@@ -304,6 +307,8 @@ function EnergyOrb({
   const orbMatRef = useRef<THREE.ShaderMaterial>(null!)
   const glowMatRef = useRef<THREE.ShaderMaterial>(null!)
   const particleMatRef = useRef<THREE.ShaderMaterial>(null!)
+  const orbitPhaseRef = useRef(0)
+  const orbitSpeedRef = useRef(0.8)
 
   const orbColor = useMemo(() => new THREE.Color(color), [color])
   const pColor = useMemo(() => new THREE.Color(particleColor), [particleColor])
@@ -317,8 +322,8 @@ function EnergyOrb({
   const _cGlow = useMemo(() => new THREE.Color(), [])
   const introGlowScale = useMemo(() => (isMobile ? 4.2 : 5.2), [])
 
-  useFrame(({ clock }) => {
-    const p = scrollProgress.current
+  useFrame(({ clock }, delta) => {
+    const p = sceneProgress.current
     const time = clock.elapsedTime
     const sign = startX > 0 ? 1 : -1
     const introT = 1.0 - smoothstep(0.0, 0.02, p)
@@ -340,24 +345,29 @@ function EnergyOrb({
       y = lerp(startY, sign * 0.18, t)
       z = lerp(0, sign * 0.2, t)
     } else if (p <= 0.66) {
-      // Scroll-driven orbital mixing: accelerates and tightens until explosion.
+      // Always spinning by time; scroll only tightens radius.
+      // Orbital speed follows radius ("gravity-like"): closer -> faster.
       const mixT = smoothstep(0.22, 0.66, p)
-      const turnProgress = Math.pow(mixT, 1.75) * 4.2 // stronger acceleration toward end
+      const radius = lerp(2.68, 0.2, Math.pow(mixT, 1.55))
+      const gravitySpeed = 0.8 + 2.2 / Math.pow(Math.max(radius, 0.26), 1.12)
+      const scrollAccel = lerp(0.0, 2.6, Math.pow(mixT, 1.45))
+      const speedGain = lerp(1.0, 2.0, Math.pow(mixT, 1.25)) // 2x by final orbit stage
+      const targetSpeed = Math.min(21.2, (gravitySpeed + scrollAccel) * speedGain)
+      const speedLerp = 1.0 - Math.exp(-Math.min(delta, 0.05) * 9.5)
+      orbitSpeedRef.current = lerp(orbitSpeedRef.current, targetSpeed, speedLerp)
 
-      let radius: number
-      if (p <= 0.52) {
-        // Keep wide spacing early so both cores are clearly distinct.
-        radius = lerp(1.12, 0.54, smoothstep(0.22, 0.52, p))
-      } else {
-        // Tight collapse near explosion handoff.
-        radius = lerp(0.54, 0.06, smoothstep(0.52, 0.66, p))
-      }
+      orbitPhaseRef.current += orbitSpeedRef.current * Math.min(delta, 0.05)
+      const angle = orbitPhaseRef.current + mixT * 0.35 + (sign > 0 ? 0 : Math.PI)
 
-      const orbitArc = turnProgress * Math.PI * 2.0
-      const angle = orbitArc + (sign > 0 ? 0 : Math.PI)
-      x = Math.cos(angle) * radius
-      y = Math.sin(angle * 1.18) * (0.11 + radius * 0.2)
-      z = Math.sin(angle * 1.03 + sign * 0.35) * radius * 1.28
+      const orbitX = Math.cos(angle) * radius
+      const orbitY = Math.sin(angle * 1.14 + sign * 0.22) * (0.1 + radius * 0.22)
+      const orbitZ = Math.sin(angle * 1.0 + sign * 0.42) * radius * 1.24
+
+      // Ease from converge endpoints into orbit to avoid a hard handoff at 22%.
+      const handoff = smoothstep(0.22, 0.28, p)
+      x = lerp(sign * 0.85, orbitX, handoff)
+      y = lerp(sign * 0.18, orbitY, handoff)
+      z = lerp(sign * 0.2, orbitZ, handoff)
     } else {
       x = 0
       y = 0
@@ -406,13 +416,15 @@ function EnergyOrb({
     const fade = preExplodeFade * endFade
     const introGlowIntensity = lerp(1.0, 0.56, introT)
     const mixGlowT = smoothstep(0.22, 0.66, p)
-    const postIntroGlowScale = p > 0.22 ? lerp(0.62, 0.34, mixGlowT) : 1.35
-    const glowFactor = p > 0.22 ? lerp(0.22, 0.1, mixGlowT) : 0.7
+    const postIntroGlowScale = p > 0.22 ? lerp(0.24, 0.1, mixGlowT) : 1.35
+    const glowFactor = p > 0.22 ? lerp(0.035, 0.009, mixGlowT) : 0.7
+    const mixCoreFactor = p > 0.22 ? lerp(0.56, 0.38, mixGlowT) : 1.0
+    const mixIntensityFactor = p > 0.22 ? lerp(0.72, 0.58, mixGlowT) : 1.0
 
     if (orbMatRef.current) {
       orbMatRef.current.uniforms.uTime.value = time
       orbMatRef.current.uniforms.uColor.value.copy(_cOrb)
-      orbMatRef.current.uniforms.uIntensity.value = intensity * fade
+      orbMatRef.current.uniforms.uIntensity.value = intensity * mixCoreFactor * mixIntensityFactor * fade
     }
     if (glowMeshRef.current) {
       const baseGlowScale = lerp(postIntroGlowScale, introGlowScale, introT)
@@ -494,9 +506,9 @@ function ExplosionParticles() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
 
   useFrame(({ clock }) => {
-    const p = scrollProgress.current
+    const p = sceneProgress.current
     if (matRef.current) {
-      matRef.current.uniforms.uProgress.value = smoothstep(0.66, 0.92, p)
+      matRef.current.uniforms.uProgress.value = smoothstep(EXPLODE_START, 0.92, p)
       matRef.current.uniforms.uTime.value = clock.elapsedTime
     }
   })
@@ -527,7 +539,7 @@ function CameraController() {
   const lookTarget = useMemo(() => new THREE.Vector3(), [])
 
   useFrame(() => {
-    const p = scrollProgress.current
+    const p = sceneProgress.current
 
     let orbitWeight = 0
     if (p >= 0.18 && p < 0.22) {
@@ -576,7 +588,7 @@ function NativeBloom() {
       new THREE.Vector2(size.width, size.height),
       0.8, // strength
       0.5, // radius
-      0.2  // threshold
+      0.42 // threshold
     )
     composer.addPass(bloom)
 
@@ -604,27 +616,37 @@ function NativeBloom() {
   useFrame(({ clock }, delta) => {
     if (!composerRef.current || !bloomRef.current) return
 
-    const p = scrollProgress.current
+    const p = sceneProgress.current
     const introScrollBlend = 1.0 - smoothstep(0.0, 0.14, p)
     const introBlend = introScrollBlend
     const introSplit = smoothstep(0.0, 0.08, p)
 
-    // ── Bloom strength ──
-    let strength = 0.8
-    if (introBlend > 0) {
-      strength = lerp(1.0, 0.8, 1.0 - introBlend)
-    } else if (p > 0.22 && p <= 0.62) {
-      strength = 0.8 + smoothstep(0.22, 0.34, p) * 0.18
-    } else if (p > 0.56 && p <= 0.66) {
-      strength = 0.98 - smoothstep(0.56, 0.66, p) * 0.18
-    } else if (p > 0.66 && p < 0.85) {
+    // ── Bloom tuning ──
+    // Drive bloom with continuous curves from p=0 to avoid hard phase snapping.
+    let strength: number
+    if (p < 0.66) {
+      const introToMix = smoothstep(0.0, 0.3, p)
+      const preExplodeDip = smoothstep(0.56, 0.66, p)
+      const base = lerp(1.0, 0.34, introToMix)
+      strength = lerp(base, 0.26, preExplodeDip)
+    } else if (p < 0.85) {
       const explosionPeak = Math.sin(smoothstep(0.66, 0.82, p) * Math.PI) * 2.5
       strength = 0.8 + explosionPeak
+    } else {
+      strength = 0.8
     }
     if (p > 0.85) {
       strength = Math.max(0, 0.8 * (1 - smoothstep(0.85, 1.0, p)))
     }
+
+    const thresholdBase = lerp(0.42, 0.62, smoothstep(0.0, 0.26, p))
+    const threshold = lerp(thresholdBase, 0.24, smoothstep(0.64, 0.7, p))
+    const radiusBase = lerp(0.42, 0.16, smoothstep(0.0, 0.26, p))
+    const radius = lerp(radiusBase, 0.5, smoothstep(0.64, 0.7, p))
+
     bloomRef.current.strength = strength
+    bloomRef.current.threshold = threshold
+    bloomRef.current.radius = radius
 
     // ── Intro ink-in-water wash: fills hero at start, fades into orb timeline ──
     if (introWashRef.current) {
@@ -660,6 +682,42 @@ function NativeBloom() {
   return null
 }
 
+// ── Timeline Controller ──────────────────────────────
+function TimelineController() {
+  const explodedRef = useRef(false)
+  const autoRef = useRef(0)
+
+  useFrame((_, delta) => {
+    const raw = Math.max(0, Math.min(1, scrollProgress.current))
+    const dt = Math.min(delta, 0.05)
+
+    // Allow replay if user scrolls back before explosion.
+    if (raw < EXPLODE_START - 0.05) {
+      explodedRef.current = false
+      autoRef.current = raw
+      sceneProgress.current = raw
+      return
+    }
+
+    if (!explodedRef.current && raw >= EXPLODE_START) {
+      explodedRef.current = true
+      autoRef.current = Math.max(raw, EXPLODE_START)
+    }
+
+    if (explodedRef.current) {
+      const autoplayRate = (EXPLODE_AUTOPLAY_END - EXPLODE_START) / EXPLODE_AUTOPLAY_DURATION
+      autoRef.current = Math.min(EXPLODE_AUTOPLAY_END, autoRef.current + autoplayRate * dt)
+      sceneProgress.current = Math.max(raw, autoRef.current)
+      return
+    }
+
+    autoRef.current = raw
+    sceneProgress.current = raw
+  }, -1)
+
+  return null
+}
+
 // ── Main Scene ───────────────────────────────────────
 export default function EnergyScene() {
   const { viewport } = useThree()
@@ -683,6 +741,7 @@ export default function EnergyScene() {
       {/* Red orb — lower left area */}
       <EnergyOrb color="#ff0044" startX={-edgeStartX} startY={redStartY} particleColor="#ff2244" />
 
+      <TimelineController />
       <ExplosionParticles />
       <CameraController />
       <NativeBloom />
