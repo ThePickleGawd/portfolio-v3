@@ -113,7 +113,7 @@ export default async function Home() {
       <section className="hero">
         <div className="hero-left">
           <p className="hero-eyebrow">
-            UCSB NLP Group &middot; College of Creative Studies
+            UCSB NLP Group &middot; Xin Eric Wang
           </p>
           <h1 className="hero-name">
             Dylan Lu,
@@ -123,15 +123,15 @@ export default async function Home() {
             intelligence.
           </h1>
           <p className="hero-desc">
-            I study multi-agent collaboration and grounded task generation
-            at UC Santa Barbara, advised by Xin Eric Wang. Previously
-            ML compiler optimization at TetraMem.
+            I work on multi-agent collaboration and grounded task
+            generation &mdash; how robots learn to work together through
+            language and interaction.
           </p>
           <div className="hero-meta">
             {[
-              ['Focus', 'NLP, RL, Vision'],
+              ['Affiliation', 'UC Santa Barbara'],
               ['Program', 'CCS Computer Science'],
-              ['GPA', '4.0'],
+              ['Focus', 'NLP, RL, Vision'],
             ].map(([label, value]) => (
               <div key={label} className="hero-meta-item">
                 <span className="hero-meta-label">{label}</span>
@@ -178,28 +178,25 @@ export default async function Home() {
           <ScrollReveal>
             <div className="about-text">
               <p>
-                Sophomore in UC Santa Barbara&rsquo;s College of Creative
-                Studies, pursuing a BS in Computer Science. I work with the
-                UCSB NLP Group on scalable benchmarks and RL pipelines for
-                multi-agent robot collaboration, with a focus on grounded
-                task generation &mdash; advised by Prof. Xin Eric Wang.
+                Undergraduate at UC Santa Barbara (College of Creative
+                Studies), working with the UCSB NLP Group on scalable
+                benchmarks and RL pipelines for multi-agent robot
+                collaboration. My focus is grounded task generation &mdash;
+                iterative methods for creating and refining tasks that
+                connect language to physical environments.
               </p>
               <p>
-                Before research, I built ML compilers at TetraMem, achieving
-                16&times; faster depthwise convolutions and reducing compile
-                times from 40 minutes to 2 seconds. I also build systems
-                outside the lab &mdash; hackathon projects, open-source tools,
-                and technical writing.
+                Previously ML compiler optimization at TetraMem and
+                software engineering at Atmosic Technologies. I also build
+                systems outside the lab and write about them.
               </p>
             </div>
           </ScrollReveal>
           <ScrollReveal>
             <div className="about-stats">
               {[
-                ['16x', 'Depthwise Conv. Speedup'],
+                ['1st', 'Grand Prize · Cal Hacks 12'],
                 ['4.0', 'GPA'],
-                ['1/695', 'Cal Hacks Grand Prize'],
-                ['CCS', 'College of Creative Studies'],
               ].map(([num, label]) => (
                 <div key={label} className="stat">
                   <div className="stat-number">{num}</div>
@@ -420,7 +417,7 @@ export default async function Home() {
       {/* ── Footer ── */}
       <footer className="footer">
         <span className="footer-text">&copy; 2026 Dylan Lu</span>
-        <span className="footer-text">Designed with intention</span>
+        <span className="footer-text">Designed with vibes</span>
       </footer>
     </main>
   )
