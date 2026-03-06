@@ -1,4 +1,5 @@
 import ScrollReveal from '@/components/ScrollReveal'
+import { getRecentPosts } from '@/lib/blog'
 
 /* ────────────────────────────────────────────────
  *  Data
@@ -11,6 +12,7 @@ const experience = [
     org: 'UCSB NLP Group \u00b7 Advisor: Xin Eric Wang',
     desc: 'Scalable benchmarks and RL pipelines for multi-agent robot collaboration. Proposed grounded task generation for iterative creation and refinement.',
     tag: 'Research',
+    href: 'https://nlp.cs.ucsb.edu/',
   },
   {
     date: 'Jun \u2014 Sep 2025',
@@ -18,6 +20,7 @@ const experience = [
     org: 'TetraMem \u00b7 AI Chip Startup',
     desc: 'Optimized Rust-based ML compiler: 16x faster depthwise convolutions, reduced compile time from 40 min to 2 sec. Built CI/CD pipeline and custom Halide C++ autoscheduler.',
     tag: 'Industry',
+    href: 'https://www.tetramem.com/',
   },
   {
     date: 'May \u2014 Aug 2022',
@@ -25,6 +28,7 @@ const experience = [
     org: 'Atmosic Technologies \u00b7 IoT Chip Startup',
     desc: 'Developed C-based QA pipeline accelerating IoT testing 3\u00d7. Built Python benchmarking tools for energy efficiency profiling.',
     tag: 'Industry',
+    href: 'https://atmosic.com/',
   },
 ]
 
@@ -35,6 +39,7 @@ const projects = [
       'Computer-use AI agent enabling remote Mac control via FaceTime and iMessage with real-time speech interaction. Won 1st place among 695 projects at the world\u2019s largest collegiate hackathon (3,000+ participants).',
     tags: ['Flask', 'React', 'Electron', 'Speech AI'],
     award: 'Grand Prize \u2014 Cal Hacks 12.0',
+    href: 'https://github.com/ThePickleGawd/FaceTimeOS',
     featured: true,
   },
   {
@@ -43,6 +48,7 @@ const projects = [
       'Mixture-of-Experts DQN agent achieving 90% human-level completion with a real-time game interaction pipeline.',
     tags: ['MoE DQN', 'OpenAI Gym', 'C++'],
     eyebrow: 'Reinforcement Learning',
+    href: 'https://github.com/ThePickleGawd/geometry-dash-ai',
   },
   {
     name: 'RAG Voice AI Agents',
@@ -50,6 +56,7 @@ const projects = [
       'On-device voice agent with <1 s speech latency and +12 point answer quality improvement via GraphRAG retrieval.',
     tags: ['Voice LLM', 'LangChain', 'GraphRAG'],
     eyebrow: 'Voice AI',
+    href: 'https://github.com/ThePickleGawd/realtime-speech-agents',
   },
   {
     name: 'Baddy Buddy AI Coach',
@@ -57,6 +64,7 @@ const projects = [
       'Badminton coaching system with 94% tracking precision using ViT models, deployed to 15+ athletes for real-time strategy insights.',
     tags: ['ViT', 'Next.js', 'Flask', 'Claude 3.5'],
     award: '1st Place Entertainment \u2014 SBHacks',
+    href: 'https://github.com/ThePickleGawd',
   },
   {
     name: 'SLAM-TT',
@@ -64,6 +72,7 @@ const projects = [
       'Video-to-3D scene reconstruction of ping pong games using SLAM. View real matches from any angle in 3D space.',
     tags: ['PyTorch', 'OpenCV', 'SLAM'],
     eyebrow: 'Computer Vision + 3D',
+    href: 'https://github.com/ThePickleGawd',
   },
 ]
 
@@ -77,17 +86,13 @@ const publications = [
   },
 ]
 
-const recentPosts = [
-  { title: 'We Won 1st Place Grand Prize at Cal Hacks', date: 'Nov 2025' },
-  { title: 'The Summer After Freshman Year', date: 'Oct 2025' },
-  { title: 'VR Chinese Learning with Speaking and Zombies', date: 'Mar 2025' },
-]
 
 /* ────────────────────────────────────────────────
  *  Page
  * ──────────────────────────────────────────────── */
 
-export default function Home() {
+export default async function Home() {
+  const recentPosts = await getRecentPosts(3)
   return (
     <main>
       {/* ── Nav ── */}
@@ -108,24 +113,24 @@ export default function Home() {
       <section className="hero">
         <div className="hero-left">
           <p className="hero-eyebrow">
-            Undergraduate Researcher &middot; UCSB
+            UCSB NLP Group &middot; College of Creative Studies
           </p>
           <h1 className="hero-name">
             Dylan Lu,
             <br />
-            <em>building</em>
+            <em>grounding</em>
             <br />
             intelligence.
           </h1>
           <p className="hero-desc">
-            CS researcher at UC Santa Barbara exploring NLP, computer vision,
-            and machine learning. From hackathon stages to research labs —
-            turning curiosity into systems that work.
+            I study multi-agent collaboration and grounded task generation
+            at UC Santa Barbara, advised by Xin Eric Wang. Previously
+            ML compiler optimization at TetraMem.
           </p>
           <div className="hero-meta">
             {[
-              ['Based in', 'Palo Alto, CA'],
-              ['Studying', 'BS Computer Science'],
+              ['Focus', 'NLP, RL, Vision'],
+              ['Program', 'CCS Computer Science'],
               ['GPA', '4.0'],
             ].map(([label, value]) => (
               <div key={label} className="hero-meta-item">
@@ -149,8 +154,8 @@ export default function Home() {
           </div>
           <div className="hero-mesh" />
           <div className="hero-visual-text">
-            &ldquo;The best way to learn is to build — so that&rsquo;s what I
-            do, constantly.&rdquo;
+            &ldquo;The interesting problems live at the boundary
+            between language and the physical world.&rdquo;
             <span>Dylan Lu</span>
           </div>
         </div>
@@ -164,36 +169,37 @@ export default function Home() {
         </ScrollReveal>
         <ScrollReveal>
           <h2 className="section-title">
-            Curiosity as a compass,
+            Language, agents,
             <br />
-            craft as a practice.
+            and the physical world.
           </h2>
         </ScrollReveal>
         <div className="about-grid">
           <ScrollReveal>
             <div className="about-text">
               <p>
-                I&rsquo;m a sophomore in UC Santa Barbara&rsquo;s College of
-                Creative Studies, pursuing a BS in Computer Science with a 4.0
-                GPA. My research with the UCSB NLP Group focuses on multi-agent
-                robot collaboration and grounded task generation, advised by
-                Prof. Xin Eric Wang.
+                Sophomore in UC Santa Barbara&rsquo;s College of Creative
+                Studies, pursuing a BS in Computer Science. I work with the
+                UCSB NLP Group on scalable benchmarks and RL pipelines for
+                multi-agent robot collaboration, with a focus on grounded
+                task generation &mdash; advised by Prof. Xin Eric Wang.
               </p>
               <p>
-                Outside the lab, I compete in hackathons, write about my
-                projects on my blog, and play way too much basketball and poker.
-                I believe the best research comes from people who build things
-                obsessively.
+                Before research, I built ML compilers at TetraMem, achieving
+                16&times; faster depthwise convolutions and reducing compile
+                times from 40 minutes to 2 seconds. I also build systems
+                outside the lab &mdash; hackathon projects, open-source tools,
+                and technical writing.
               </p>
             </div>
           </ScrollReveal>
           <ScrollReveal>
             <div className="about-stats">
               {[
-                ['1st', 'Cal Hacks Grand Prize'],
+                ['16x', 'Depthwise Conv. Speedup'],
                 ['4.0', 'GPA'],
-                ['16x', 'Faster Convolutions @ TetraMem'],
-                ['CCS', 'Honors Program'],
+                ['1/695', 'Cal Hacks Grand Prize'],
+                ['CCS', 'College of Creative Studies'],
               ].map(([num, label]) => (
                 <div key={label} className="stat">
                   <div className="stat-number">{num}</div>
@@ -213,15 +219,20 @@ export default function Home() {
         </ScrollReveal>
         <ScrollReveal>
           <h2 className="section-title">
-            Where I&rsquo;ve been
+            Research and
             <br />
-            and what I&rsquo;ve built.
+            industry.
           </h2>
         </ScrollReveal>
         <div style={{ marginTop: '1rem' }}>
           {experience.map((exp) => (
             <ScrollReveal key={exp.role}>
-              <div className="exp-item">
+              <a
+                href={exp.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="exp-item"
+              >
                 <span className="exp-date">{exp.date}</span>
                 <div>
                   <div className="exp-role">{exp.role}</div>
@@ -229,7 +240,7 @@ export default function Home() {
                   <div className="exp-desc">{exp.desc}</div>
                 </div>
                 <span className="exp-tag">{exp.tag}</span>
-              </div>
+              </a>
             </ScrollReveal>
           ))}
         </div>
@@ -243,15 +254,18 @@ export default function Home() {
         </ScrollReveal>
         <ScrollReveal>
           <h2 className="section-title">
-            Things I&rsquo;ve made
+            Systems and
             <br />
-            that I&rsquo;m proud of.
+            artifacts.
           </h2>
         </ScrollReveal>
         <div className="project-grid">
           {projects.map((project) => (
             <ScrollReveal key={project.name}>
-              <div
+              <a
+                href={project.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`project-card${
                   project.featured ? ' featured' : ''
                 }`}
@@ -288,7 +302,7 @@ export default function Home() {
                     </span>
                   </div>
                 )}
-              </div>
+              </a>
             </ScrollReveal>
           ))}
         </div>
@@ -352,10 +366,15 @@ export default function Home() {
         <div style={{ maxWidth: 700 }}>
           {recentPosts.map((post) => (
             <ScrollReveal key={post.title}>
-              <div className="writing-item">
+              <a
+                href={post.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="writing-item"
+              >
                 <span className="writing-title">{post.title}</span>
                 <span className="writing-date">{post.date}</span>
-              </div>
+              </a>
             </ScrollReveal>
           ))}
           <ScrollReveal>
@@ -373,11 +392,11 @@ export default function Home() {
 
       {/* ── Contact ── */}
       <section id="contact" className="contact-section">
-        <div className="section-label">Say Hello</div>
+        <div className="section-label">Contact</div>
         <h2 className="contact-heading">
-          Let&rsquo;s build something
+          Interested in
           <br />
-          <em>extraordinary</em> together.
+          <em>collaborating</em>?
         </h2>
         <div className="contact-links">
           {[

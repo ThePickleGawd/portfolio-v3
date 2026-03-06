@@ -20,7 +20,7 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'Dylan Lu',
   description:
-    'CS researcher at UC Santa Barbara — NLP, computer vision, and machine learning.',
+    'Undergraduate researcher at UCSB studying multi-agent collaboration, grounded task generation, and reinforcement learning.',
 }
 
 export default function RootLayout({

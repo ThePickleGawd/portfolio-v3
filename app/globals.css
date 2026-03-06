@@ -369,7 +369,9 @@ body::before {
   border-bottom: 1px solid rgba(184,175,166,0.4);
   align-items: start;
   transition: all 0.4s ease;
-  cursor: default;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .exp-item:first-child { border-top: 1px solid rgba(184,175,166,0.4); }
@@ -437,8 +439,14 @@ body::before {
   border: 1px solid rgba(255,255,255,0.06);
   padding: 2.5rem;
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-  cursor: default;
+  cursor: pointer;
   overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .project-card::before {
@@ -455,12 +463,17 @@ body::before {
 .project-card:hover::before { width: 100%; }
 .project-card:hover { background: rgba(255,255,255,0.07); transform: translateY(-4px); }
 
+.project-grid > .reveal:has(.featured) {
+  grid-column: 1 / -1;
+}
+
 .project-card.featured {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 3rem;
   padding: 3rem;
+  min-height: auto;
 }
 
 .project-eyebrow {
@@ -568,9 +581,11 @@ body::before {
   align-items: baseline;
   padding: 1.5rem 0;
   border-bottom: 1px solid rgba(184,175,166,0.3);
-  cursor: default;
+  cursor: pointer;
   transition: all 0.3s;
   gap: 1rem;
+  text-decoration: none;
+  color: inherit;
 }
 
 .writing-item:hover { padding-left: 1rem; }
