@@ -1,3 +1,4 @@
+import Nav from '@/components/Nav'
 import ScrollReveal from '@/components/ScrollReveal'
 import { getRecentPosts } from '@/lib/blog'
 
@@ -96,18 +97,7 @@ export default async function Home() {
   return (
     <main>
       {/* ── Nav ── */}
-      <nav className="nav">
-        <div className="nav-logo">Dylan Lu</div>
-        <ul className="nav-links">
-          {['About', 'Experience', 'Work', 'Publications', 'Contact'].map(
-            (label) => (
-              <li key={label}>
-                <a href={`#${label.toLowerCase()}`}>{label}</a>
-              </li>
-            )
-          )}
-        </ul>
-      </nav>
+      <Nav />
 
       {/* ── Hero ── */}
       <section className="hero">
@@ -146,17 +136,13 @@ export default async function Home() {
         </div>
 
         <div className="hero-right">
-          <div style={{ position: 'absolute', inset: 0 }}>
-            <div className="orb orb-1" />
-            <div className="orb orb-2" />
-            <div className="orb orb-3" />
-            <div className="orb orb-4" />
-          </div>
-          <div className="hero-mesh" />
-          <div className="hero-visual-text">
-            &ldquo;The interesting problems live at the boundary
-            between language and the physical world.&rdquo;
-            <span>Dylan Lu</span>
+          <div className="hero-portrait-wrap">
+            <img
+              src="/portrait.png"
+              alt="Dylan Lu"
+              className="hero-portrait"
+            />
+            <div className="hero-portrait-overlay" />
           </div>
         </div>
       </section>

@@ -61,24 +61,20 @@ body::before {
 
 /* ── Nav ── */
 .nav {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
   padding: 1.5rem 3rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   mix-blend-mode: difference;
 }
 
 .nav-logo {
-  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: white;
-  letter-spacing: 0.02em;
+  display: none;
 }
 
 .nav-links {
@@ -98,6 +94,77 @@ body::before {
 }
 
 .nav-links a:hover { opacity: 0.6; }
+
+/* ── Hamburger ── */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 200;
+}
+
+.nav-burger span {
+  display: block;
+  width: 100%;
+  height: 1.5px;
+  background: white;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: center;
+}
+
+.nav-burger.open span:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+
+.nav-burger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-burger.open span:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* ── Mobile overlay ── */
+.nav-mobile {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: #1A1A1A;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.nav-mobile.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-mobile a {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: #F5F0EB;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.3s;
+}
+
+.nav-mobile a:hover {
+  color: #C75B3B;
+}
 
 /* ── Hero ── */
 .hero {
@@ -233,54 +300,78 @@ body::before {
   font-weight: 500;
 }
 
-/* ── Orbs ── */
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-}
-
-.orb-1 { width: 350px; height: 350px; background: #C75B3B; top: 10%; left: 20%; opacity: 0; animation: orbFloat 8s ease-in-out infinite, fadeIn 1.5s ease 0.5s forwards; }
-.orb-2 { width: 250px; height: 250px; background: #D4826A; top: 50%; right: 10%; opacity: 0; animation: orbFloat 10s ease-in-out infinite, fadeIn 1.5s ease 0.8s forwards; animation-delay: -3s; }
-.orb-3 { width: 200px; height: 200px; background: #8B9A7B; bottom: 15%; left: 10%; opacity: 0; animation: orbFloat 12s ease-in-out infinite, fadeIn 1.5s ease 1.1s forwards; animation-delay: -5s; }
-.orb-4 { width: 180px; height: 180px; background: #E8C4A0; top: 30%; right: 30%; opacity: 0; animation: orbFloat 9s ease-in-out infinite, fadeIn 1.5s ease 1.3s forwards; animation-delay: -7s; }
-
-.hero-mesh {
+/* ── Portrait ── */
+/* ── Portrait ── */
+.hero-portrait-wrap {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(245,240,235,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(245,240,235,0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
-  z-index: 2;
+  z-index: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(199, 91, 59, 0.3) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(139, 154, 123, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(26, 26, 26, 0.9) 0%, #1A1A1A 100%);
 }
 
-.hero-visual-text {
-  position: absolute;
-  bottom: 3rem;
-  left: 2.5rem;
-  right: 2.5rem;
-  z-index: 3;
-  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
-  font-size: 1.5rem;
-  font-weight: 300;
-  font-style: italic;
-  color: rgba(245,240,235,0.35);
-  line-height: 1.5;
+.hero-portrait {
+  width: auto;
+  height: 130%;
+  margin-top: 12%;
+  max-width: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+  filter: saturate(0.65) contrast(1.15) brightness(0.9) sepia(0.1);
   opacity: 0;
-  animation: fadeUp 0.8s ease 1.4s forwards;
+  animation: fadeIn 1.5s ease 0.5s forwards;
 }
 
-.hero-visual-text span {
-  display: block;
-  font-size: 0.7rem;
-  font-style: normal;
-  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-top: 1rem;
-  color: rgba(245,240,235,0.2);
+/* Warm gradient overlay on top of portrait */
+.hero-portrait-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 50%,
+    rgba(26, 26, 26, 0.6) 85%,
+    rgba(26, 26, 26, 0.95) 100%
+  );
+  pointer-events: none;
 }
+
+/* Vignette for depth */
+.hero-portrait-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    transparent 35%,
+    rgba(26, 26, 26, 0.6) 100%
+  );
+}
+
+/* Subtle warm rim light effect */
+.hero-portrait-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 25% 30%,
+    rgba(199, 91, 59, 0.15) 0%,
+    transparent 50%
+  );
+}
+
+
 
 /* ── Section shared ── */
 .section {
@@ -707,12 +798,6 @@ body::before {
   100% { transform: translateX(100%); }
 }
 
-@keyframes orbFloat {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(30px, -20px) scale(1.05); }
-  50% { transform: translate(-20px, 20px) scale(0.95); }
-  75% { transform: translate(15px, 10px) scale(1.02); }
-}
 
 .reveal {
   opacity: 0;
@@ -730,9 +815,9 @@ body::before {
  * ════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .nav { padding: 1rem 1.5rem; flex-direction: column; gap: 0.75rem; align-items: flex-start; }
-  .nav-links { gap: 1rem; flex-wrap: wrap; }
-  .nav-links a { font-size: 0.6rem; letter-spacing: 0.06em; }
+  .nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .nav-burger { display: flex; }
 
   .hero { grid-template-columns: 1fr; }
   .hero-left { padding: 7rem 1.5rem 3rem; min-height: 75vh; }
@@ -741,7 +826,6 @@ body::before {
   .hero-desc { font-size: 0.95rem; }
   .hero-meta { gap: 1.5rem; }
   .hero-right { height: 40vh; }
-  .hero-visual-text { font-size: 1.1rem; left: 1.5rem; right: 1.5rem; bottom: 2rem; }
   .hero-scroll { left: 1.5rem; bottom: 1.5rem; }
 
   .section { padding: 4rem 1.5rem; }
