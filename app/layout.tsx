@@ -1,24 +1,26 @@
 import type { Metadata } from 'next'
-import { Syne, Outfit } from 'next/font/google'
-import ExperimentNav from '@/components/ExperimentNav'
+import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
 import './globals.css'
 
-const syne = Syne({
+const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
-  variable: '--font-syne',
+  variable: '--font-cormorant',
   display: 'swap',
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['300', '400', '600', '700'],
+  style: ['normal', 'italic'],
 })
 
-const outfit = Outfit({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-outfit',
+  variable: '--font-dm-sans',
   display: 'swap',
+  weight: ['300', '400', '500', '600'],
 })
 
 export const metadata: Metadata = {
   title: 'Dylan Lu',
-  description: 'Personal website of Dylan Lu — projects, research, and experiments.',
+  description:
+    'CS researcher at UC Santa Barbara — NLP, computer vision, and machine learning.',
 }
 
 export default function RootLayout({
@@ -27,11 +29,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${syne.variable} ${outfit.variable}`}>
-      <body className="font-[var(--font-outfit)] antialiased">
-        <ExperimentNav />
-        {children}
-      </body>
+    <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
+      <body className="font-[var(--font-dm-sans)] antialiased">{children}</body>
     </html>
   )
 }
