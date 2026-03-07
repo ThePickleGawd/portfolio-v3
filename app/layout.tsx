@@ -17,10 +17,75 @@ const dmSans = DM_Sans({
   weight: ['300', '400', '500', '600'],
 })
 
+const url = 'https://dylanlu.com'
+const title = 'Dylan Lu — AI Researcher, UCSB'
+const description =
+  'Dylan Lu is an undergraduate AI researcher at UC Santa Barbara (UCSB NLP Group) working on agentic AI, long-horizon reasoning, multi-agent collaboration, and reinforcement learning.'
+
 export const metadata: Metadata = {
-  title: 'Dylan Lu',
-  description:
-    'Undergraduate researcher at UCSB working on NLP, computer vision, and reinforcement learning — with an emphasis on multimodal and agentic AI.',
+  metadataBase: new URL(url),
+  title,
+  description,
+  keywords: [
+    'Dylan Lu',
+    'AI researcher',
+    'UCSB',
+    'NLP',
+    'reinforcement learning',
+    'agentic AI',
+    'machine learning',
+    'UC Santa Barbara',
+  ],
+  authors: [{ name: 'Dylan Lu', url }],
+  creator: 'Dylan Lu',
+  openGraph: {
+    type: 'website',
+    url,
+    title,
+    description,
+    siteName: 'Dylan Lu',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary',
+    title,
+    description,
+  },
+  alternates: {
+    canonical: url,
+  },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Dylan Lu',
+  url,
+  jobTitle: 'Undergraduate AI Researcher',
+  affiliation: {
+    '@type': 'Organization',
+    name: 'UC Santa Barbara',
+    department: {
+      '@type': 'Organization',
+      name: 'NLP Group',
+    },
+  },
+  alumniOf: {
+    '@type': 'EducationalOrganization',
+    name: 'UC Santa Barbara',
+  },
+  knowsAbout: [
+    'Artificial Intelligence',
+    'Natural Language Processing',
+    'Reinforcement Learning',
+    'Agentic AI',
+    'Multi-Agent Systems',
+  ],
+  sameAs: [
+    'https://github.com/ThePickleGawd',
+    'https://www.linkedin.com/in/dylanelu/',
+    'https://blog.dylanlu.com',
+  ],
 }
 
 export default function RootLayout({
@@ -30,6 +95,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="ucsb" className={`${cormorant.variable} ${dmSans.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="font-[var(--font-dm-sans)] antialiased">{children}</body>
     </html>
   )
