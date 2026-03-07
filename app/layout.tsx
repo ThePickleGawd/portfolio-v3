@@ -85,6 +85,7 @@ const jsonLd = {
     'https://github.com/ThePickleGawd',
     'https://www.linkedin.com/in/dylanelu/',
     'https://blog.dylanlu.com',
+    'https://www.instagram.com/_dylan_lu/',
   ],
 }
 
