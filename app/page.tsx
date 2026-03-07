@@ -281,19 +281,6 @@ export default async function Home() {
                     ))}
                   </div>
                 </div>
-                {project.featured && (
-                  <div className="project-visual">
-                    <span
-                      style={{
-                        fontSize: '3rem',
-                        opacity: 0.6,
-                        color: '#F5F0EB',
-                      }}
-                    >
-                      &#128187;
-                    </span>
-                  </div>
-                )}
               </a>
             </ScrollReveal>
           ))}
