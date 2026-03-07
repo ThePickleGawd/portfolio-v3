@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
+    <html lang="en" data-theme="ucsb" className={`${cormorant.variable} ${dmSans.variable}`}>
       <body className="font-[var(--font-dm-sans)] antialiased">{children}</body>
     </html>
   )

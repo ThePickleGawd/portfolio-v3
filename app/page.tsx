@@ -1,5 +1,6 @@
 import Nav from '@/components/Nav'
 import ScrollReveal from '@/components/ScrollReveal'
+import RoleCycler from '@/components/RoleCycler'
 import { getRecentPosts } from '@/lib/blog'
 
 /* ────────────────────────────────────────────────
@@ -109,12 +110,7 @@ export default async function Home() {
       {/* ── Hero ── */}
       <section className="hero">
         <div className="hero-left">
-          <p className="hero-eyebrow">
-            UCSB &middot; Undergrad Researcher
-          </p>
-          <h1 className="hero-name">
-            Dylan Lu.
-          </h1>
+          <RoleCycler />
           <p className="hero-desc">
             I research AI agents, long-horizon reasoning,
             multi-agent collaboration, and reinforcement learning.
@@ -140,11 +136,13 @@ export default async function Home() {
         <div className="hero-right">
           <div className="hero-portrait-wrap">
             <img
-              src="/portrait.png"
+              src="/portrait.webp"
               alt="Dylan Lu"
               className="hero-portrait"
             />
             <div className="hero-portrait-overlay" />
+            <div className="hero-portrait-tint" />
+            <div className="hero-portrait-glow" />
             <div className="hero-portrait-dof" />
           </div>
         </div>
@@ -158,9 +156,9 @@ export default async function Home() {
         </ScrollReveal>
         <ScrollReveal>
           <h2 className="section-title">
-            Agents that reason,
+            Things I like
             <br />
-            plan, and act.
+            to work on.
           </h2>
         </ScrollReveal>
         <div className="about-grid">
@@ -173,15 +171,10 @@ export default async function Home() {
                 <a href="http://nlp.cs.ucsb.edu/" target="_blank" rel="noopener noreferrer" className="about-link">UCSB NLP Group</a> under{' '}
                 <a href="https://eric-xw.github.io/" target="_blank" rel="noopener noreferrer" className="about-link">Xin Eric Wang</a>.
                 I work on AI agents, long-horizon planning, and
-                multi-agent collaboration. Current projects include
-                benchmarking how agents maintain user constraints
-                over extended interactions, and evaluating theory
-                of mind in embodied multi-agent settings.
+                multi-agent collaboration.
               </p>
               <p>
-                Previously ML compiler optimization at TetraMem and
-                software engineering at Atmosic Technologies. Won the
-                grand prize at{' '}
+                I also won the grand prize at{' '}
                 <a href="https://calhacks.io/" target="_blank" rel="noopener noreferrer" className="about-link">Cal Hacks</a>,
                 the world&rsquo;s largest collegiate hackathon.
               </p>
@@ -190,7 +183,7 @@ export default async function Home() {
           <ScrollReveal>
             <div className="about-stats">
               {[
-                ['1st Place', 'Grand Prize · Cal Hacks 12'],
+                ['1st Place', 'Grand Prize · Cal Hacks'],
                 ['4.0', 'GPA'],
               ].map(([num, label]) => (
                 <div key={label} className="stat">
@@ -290,8 +283,7 @@ export default async function Home() {
       {/* ── Publications ── */}
       <section
         id="publications"
-        className="section"
-        style={{ background: '#EDE7DF' }}
+        className="section bg-alt"
       >
         <span className="section-number">04</span>
         <ScrollReveal>
@@ -351,7 +343,7 @@ export default async function Home() {
           <div className="section-label">Writing</div>
         </ScrollReveal>
         <ScrollReveal>
-          <h2 className="section-title">From the blog.</h2>
+          <h2 className="section-title">From my blog.</h2>
         </ScrollReveal>
         <div style={{ maxWidth: 700 }}>
           {recentPosts.map((post) => (
