@@ -79,11 +79,18 @@ const projects = [
 
 const publications = [
   {
-    title: 'Placeholder \u2014 your publications will go here',
-    authors: 'Dylan Lu, et al.',
-    venue: 'Venue TBD',
+    title: 'Context Rot Bench: Measuring User Constraint Adherence in Long-Horizon Agents',
+    authors: ['Dylan Lu*', 'Saaket Agashe', 'Xin Eric Wang'],
+    venue: 'TBD',
     year: '2026',
-    status: 'coming soon',
+    status: 'in progress',
+  },
+  {
+    title: 'EmToM: Embodied Agent Theory of Mind Evaluation Benchmark',
+    authors: ['Gurusha Juneja', 'Dylan Lu', 'Saaket Agashe', 'Parth Diwane', 'Xin Eric Wang'],
+    venue: 'TBD',
+    year: '2026',
+    status: 'in progress',
   },
 ]
 
@@ -151,25 +158,32 @@ export default async function Home() {
         </ScrollReveal>
         <ScrollReveal>
           <h2 className="section-title">
-            Language, agents,
+            Agents that reason,
             <br />
-            and the physical world.
+            plan, and act.
           </h2>
         </ScrollReveal>
         <div className="about-grid">
           <ScrollReveal>
             <div className="about-text">
               <p>
-                Undergraduate at UC Santa Barbara (College of Creative
-                Studies), working with the UCSB NLP Group under Xin
-                Eric Wang. My research interests span natural language
-                processing, reinforcement learning, and machine
-                learning &mdash; with an emphasis on agentic AI.
+                Undergraduate at UC Santa Barbara{' '}
+                (<a href="https://ccs.ucsb.edu/majors/computing" target="_blank" rel="noopener noreferrer" className="about-link">College of Creative Studies</a>),
+                working with the{' '}
+                <a href="http://nlp.cs.ucsb.edu/" target="_blank" rel="noopener noreferrer" className="about-link">UCSB NLP Group</a> under{' '}
+                <a href="https://eric-xw.github.io/" target="_blank" rel="noopener noreferrer" className="about-link">Xin Eric Wang</a>.
+                I work on AI agents, long-horizon planning, and
+                multi-agent collaboration. Current projects include
+                benchmarking how agents maintain user constraints
+                over extended interactions, and evaluating theory
+                of mind in embodied multi-agent settings.
               </p>
               <p>
                 Previously ML compiler optimization at TetraMem and
-                software engineering at Atmosic Technologies. I also build
-                systems outside the lab and write about them.
+                software engineering at Atmosic Technologies. Won the
+                grand prize at{' '}
+                <a href="https://calhacks.io/" target="_blank" rel="noopener noreferrer" className="about-link">Cal Hacks</a>,
+                the world&rsquo;s largest collegiate hackathon.
               </p>
             </div>
           </ScrollReveal>
@@ -300,7 +314,7 @@ export default async function Home() {
           <h2 className="section-title">
             Research I&rsquo;ve
             <br />
-            contributed to.
+            worked on.
           </h2>
         </ScrollReveal>
         <div style={{ maxWidth: 700 }}>
@@ -317,7 +331,18 @@ export default async function Home() {
                 >
                   <div>
                     <div className="pub-title">{pub.title}</div>
-                    <div className="pub-authors">{pub.authors}</div>
+                    <div className="pub-authors">
+                      {pub.authors.map((author, i) => (
+                        <span key={author}>
+                          {author.startsWith('Dylan Lu') ? (
+                            <strong>{author}</strong>
+                          ) : (
+                            author
+                          )}
+                          {i < pub.authors.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </div>
                     <div className="pub-venue">
                       {pub.venue}, {pub.year}
                     </div>

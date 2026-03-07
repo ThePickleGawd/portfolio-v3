@@ -310,6 +310,8 @@ body::before {
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
   background:
     radial-gradient(ellipse at 30% 20%, rgba(199, 91, 59, 0.3) 0%, transparent 60%),
     radial-gradient(ellipse at 70% 80%, rgba(139, 154, 123, 0.2) 0%, transparent 50%),
@@ -467,6 +469,15 @@ body::before {
 
 .about-text p + p { margin-top: 1.5rem; }
 
+.about-link {
+  color: #C75B3B;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(199, 91, 59, 0.3);
+  transition: border-color 0.3s;
+}
+
+.about-link:hover { border-color: #C75B3B; }
+
 .about-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -475,7 +486,7 @@ body::before {
   padding-top: 0.5rem;
 }
 
-.stat { padding: 1.5rem 0; border-top: 1px solid #B8AFA6; display: flex; align-items: baseline; gap: 0.75rem; }
+.stat { padding: 1.5rem 0; border-top: 1px solid #B8AFA6; }
 
 .stat-number {
   font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
@@ -483,7 +494,7 @@ body::before {
   font-weight: 300;
   color: #C75B3B;
   line-height: 1;
-  white-space: nowrap;
+  margin-bottom: 0.5rem;
 }
 
 .stat-label {
@@ -694,6 +705,7 @@ body::before {
 }
 
 .pub-authors { font-size: 0.9rem; color: #3A3A3A; }
+.pub-authors strong { font-weight: 700; color: #1A1A1A; }
 .pub-venue { font-size: 0.85rem; color: #B8AFA6; margin-top: 0.25rem; }
 
 .pub-status {
