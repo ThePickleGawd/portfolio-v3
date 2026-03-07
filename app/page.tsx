@@ -109,9 +109,8 @@ export default async function Home() {
             Dylan Lu.
           </h1>
           <p className="hero-desc">
-            I study how language models become{' '}
-            <em>agents</em> &mdash; systems that reason,
-            plan, and act in both virtual and physical environments.
+            I research AI agents, long-horizon reasoning,
+            multi-agent collaboration, and reinforcement learning.
           </p>
           <div className="hero-meta">
             {[
@@ -162,11 +161,10 @@ export default async function Home() {
             <div className="about-text">
               <p>
                 Undergraduate at UC Santa Barbara (College of Creative
-                Studies), working with the UCSB NLP Group under Xin Eric
-                Wang. My research interests span natural language
-                processing, computer vision, and reinforcement
-                learning &mdash; with an emphasis on multimodal and
-                agentic AI.
+                Studies), working with the UCSB NLP Group under Xin
+                Eric Wang. My research interests span natural language
+                processing, reinforcement learning, and machine
+                learning &mdash; with an emphasis on agentic AI.
               </p>
               <p>
                 Previously ML compiler optimization at TetraMem and
@@ -178,7 +176,7 @@ export default async function Home() {
           <ScrollReveal>
             <div className="about-stats">
               {[
-                ['1st', 'Grand Prize · Cal Hacks 12'],
+                ['1st Place', 'Grand Prize · Cal Hacks 12'],
                 ['4.0', 'GPA'],
               ].map(([num, label]) => (
                 <div key={label} className="stat">
@@ -234,9 +232,9 @@ export default async function Home() {
         </ScrollReveal>
         <ScrollReveal>
           <h2 className="section-title">
-            Systems and
+            Projects and
             <br />
-            artifacts.
+            hackathons.
           </h2>
         </ScrollReveal>
         <div className="project-grid">
