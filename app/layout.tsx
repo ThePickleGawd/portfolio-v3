@@ -86,6 +86,7 @@ const jsonLd = {
     'https://www.linkedin.com/in/dylanelu/',
     'https://blog.dylanlu.com',
     'https://www.instagram.com/_dylan_lu/',
+    'https://flowcv.com/resume/wvn6su5ue1',
   ],
 }
 
