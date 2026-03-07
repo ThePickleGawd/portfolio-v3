@@ -1,6 +1,7 @@
 import Nav from '@/components/Nav'
 import ScrollReveal from '@/components/ScrollReveal'
 import RoleCycler from '@/components/RoleCycler'
+import HeroPortrait from '@/components/HeroPortrait'
 import { getRecentPosts } from '@/lib/blog'
 
 /* ────────────────────────────────────────────────
@@ -8,6 +9,22 @@ import { getRecentPosts } from '@/lib/blog'
  * ──────────────────────────────────────────────── */
 
 const experience = [
+  {
+    date: 'Summer 2026',
+    role: 'ML Research Intern',
+    org: 'Simular \u00b7 Autonomous Computer Agents',
+    desc: 'Building AI agents that autonomously operate computers and automate workflows across macOS, Windows, and Linux.',
+    tag: 'Incoming',
+    href: 'https://www.simular.ai/',
+  },
+  {
+    date: 'Spring 2026',
+    role: 'ML Research Intern',
+    org: 'ChipAgents \u00b7 Agentic AI for Chip Design',
+    desc: 'Agentic AI platform automating semiconductor design and verification workflows.',
+    tag: 'Incoming',
+    href: 'https://chipagents.ai/',
+  },
   {
     date: 'Oct 2025 \u2014',
     role: 'Undergraduate Researcher \u2014 NLP',
@@ -134,17 +151,7 @@ export default async function Home() {
         </div>
 
         <div className="hero-right">
-          <div className="hero-portrait-wrap">
-            <img
-              src="/portrait.webp"
-              alt="Dylan Lu"
-              className="hero-portrait"
-            />
-            <div className="hero-portrait-overlay" />
-            <div className="hero-portrait-tint" />
-            <div className="hero-portrait-glow" />
-            <div className="hero-portrait-dof" />
-          </div>
+          <HeroPortrait />
         </div>
       </section>
 
@@ -156,9 +163,9 @@ export default async function Home() {
         </ScrollReveal>
         <ScrollReveal>
           <h2 className="section-title">
-            Things I like
+            Things I
             <br />
-            to work on.
+            work on.
           </h2>
         </ScrollReveal>
         <div className="about-grid">
@@ -211,7 +218,7 @@ export default async function Home() {
         </ScrollReveal>
         <div style={{ marginTop: '1rem' }}>
           {experience.map((exp) => (
-            <ScrollReveal key={exp.role}>
+            <ScrollReveal key={exp.org}>
               <a
                 href={exp.href}
                 target="_blank"

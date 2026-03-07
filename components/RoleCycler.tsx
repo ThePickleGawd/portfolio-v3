@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 const roles = [
   { label: 'UCSB \u00b7 Undergrad Researcher', theme: 'ucsb' },
   { label: 'ChipAgents \u00b7 AI Research', theme: 'chipagents' },
   { label: 'Simular \u00b7 AI Research', theme: 'simular' },
-  { label: 'NVIDIA \u00b7 AI Research', theme: 'nvidia' },
+  // { label: 'NVIDIA · AI Research', theme: 'nvidia' },
 ]
 
 export default function RoleCycler() {
@@ -17,6 +17,7 @@ export default function RoleCycler() {
     if (fading) return
     const next = (index + 1) % roles.length
     document.documentElement.dataset.theme = roles[next].theme
+    document.dispatchEvent(new CustomEvent('theme-cycle'))
     setFading(true)
 
     setTimeout(() => {
@@ -24,6 +25,13 @@ export default function RoleCycler() {
       setFading(false)
     }, 250)
   }, [index, fading])
+
+  // Listen for portrait clicks to trigger cycle
+  useEffect(() => {
+    const handler = () => cycle()
+    document.addEventListener('portrait-click', handler)
+    return () => document.removeEventListener('portrait-click', handler)
+  }, [cycle])
 
   return (
     <>
