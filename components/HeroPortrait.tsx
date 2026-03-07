@@ -50,10 +50,8 @@ export default function HeroPortrait() {
       <div className="hero-portrait-tint" />
       <div className="hero-portrait-glow" />
       <div className="hero-portrait-dof" />
-      <div className="portrait-crop-mark portrait-crop-mark--tl" />
-      <div className="portrait-crop-mark portrait-crop-mark--tr" />
-      <div className="portrait-crop-mark portrait-crop-mark--br" />
-      <div className="portrait-crop-mark portrait-crop-mark--bl" />
+      <div className={`hero-fog hero-fog-top fog-${fog}`} />
+      <div className={`hero-fog hero-fog-bottom fog-${fog}`} />
       <div className={`hero-fog hero-fog-left fog-${fog}`} />
       <div className={`hero-fog hero-fog-right fog-${fog}`} />
     </div>

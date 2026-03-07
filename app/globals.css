@@ -455,77 +455,29 @@ body::before {
   transition: background var(--theme-speed) ease;
 }
 
-/* ── Hover: darkroom reveal + registration marks ── */
+/* ── Hover: darkroom reveal — subtle grade shift + focus pull + glow ── */
 .hero-portrait-wrap:hover .hero-portrait {
-  filter: saturate(1.05) contrast(1.15) brightness(0.93);
+  filter: saturate(0.91) contrast(1.27) brightness(0.89);
 }
 
 .hero-portrait-wrap:hover::before {
   background: radial-gradient(
     ellipse at 50% 35%,
-    transparent 25%,
-    rgba(0,0,0, 0.12) 48%,
-    rgba(0,0,0, 0.4) 65%,
-    rgba(0,0,0, 0.9) 100%
+    transparent 22%,
+    rgba(0,0,0, 0.22) 44%,
+    rgba(0,0,0, 0.56) 64%,
+    rgba(0,0,0, 0.95) 100%
   );
 }
 
 .hero-portrait-wrap:hover .hero-portrait-glow {
-  transform: scale(1.15);
-  filter: blur(40px);
+  transform: scale(1.12);
+  filter: blur(45px) brightness(1.4);
 }
 
-/* ── Crop marks — editorial registration marks at corners ── */
-.portrait-crop-mark {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  z-index: 6;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-              transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.portrait-crop-mark--tl {
-  top: 12%;
-  left: 12%;
-  border-top: 1px solid rgba(255,255,255,0.35);
-  border-left: 1px solid rgba(255,255,255,0.35);
-  transform: translate(-4px, -4px);
-  transition-delay: 0s;
-}
-
-.portrait-crop-mark--tr {
-  top: 12%;
-  right: 12%;
-  border-top: 1px solid rgba(255,255,255,0.35);
-  border-right: 1px solid rgba(255,255,255,0.35);
-  transform: translate(4px, -4px);
-  transition-delay: 0.04s;
-}
-
-.portrait-crop-mark--br {
-  bottom: 12%;
-  right: 12%;
-  border-bottom: 1px solid rgba(255,255,255,0.35);
-  border-right: 1px solid rgba(255,255,255,0.35);
-  transform: translate(4px, 4px);
-  transition-delay: 0.08s;
-}
-
-.portrait-crop-mark--bl {
-  bottom: 12%;
-  left: 12%;
-  border-bottom: 1px solid rgba(255,255,255,0.35);
-  border-left: 1px solid rgba(255,255,255,0.35);
-  transform: translate(-4px, 4px);
-  transition-delay: 0.12s;
-}
-
-.hero-portrait-wrap:hover .portrait-crop-mark {
-  opacity: 1;
-  transform: translate(0, 0);
+.hero-portrait-wrap:hover .hero-portrait-dof {
+  backdrop-filter: blur(0.4px);
+  -webkit-backdrop-filter: blur(0.4px);
 }
 
 .hero-portrait {
@@ -640,6 +592,7 @@ body::before {
   -webkit-backdrop-filter: blur(1.5px);
   mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+  transition: backdrop-filter 0.5s ease, -webkit-backdrop-filter 0.5s ease;
 }
 
 /* Vignette — gradual falloff, works with portrait mask for seamless integration */
@@ -674,25 +627,35 @@ body::before {
   transition: background var(--theme-speed) ease;
 }
 
-/* ── Side fog — soft edge atmosphere, animates on load + theme cycle ── */
+/* ── Fog — atmosphere from all edges, animates on load + theme cycle ── */
 .hero-fog {
   position: absolute;
-  top: 0;
-  bottom: 0;
   z-index: 5;
   pointer-events: none;
 }
 
 .hero-fog-left {
-  left: 0;
+  top: 0; bottom: 0; left: 0;
   width: 45%;
   background: linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
 }
 
 .hero-fog-right {
-  right: 0;
+  top: 0; bottom: 0; right: 0;
   width: 45%;
   background: linear-gradient(to left, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+}
+
+.hero-fog-top {
+  top: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.25) 50%, transparent 100%);
+}
+
+.hero-fog-bottom {
+  bottom: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.25) 50%, transparent 100%);
 }
 
 .fog-in {
@@ -701,6 +664,8 @@ body::before {
 }
 .hero-fog-left.fog-in { transform: translateX(0); }
 .hero-fog-right.fog-in { transform: translateX(0); }
+.hero-fog-top.fog-in { transform: translateY(0); }
+.hero-fog-bottom.fog-in { transform: translateY(0); }
 
 .fog-out {
   opacity: 0;
@@ -709,6 +674,8 @@ body::before {
 }
 .hero-fog-left.fog-out { transform: translateX(-5%); }
 .hero-fog-right.fog-out { transform: translateX(5%); }
+.hero-fog-top.fog-out { transform: translateY(-5%); }
+.hero-fog-bottom.fog-out { transform: translateY(5%); }
 
 /* ── Section shared ── */
 .section {
