@@ -11,7 +11,7 @@ const experience = [
     date: 'Oct 2025 \u2014',
     role: 'Undergraduate Researcher \u2014 NLP',
     org: 'UCSB NLP Group \u00b7 Advisor: Xin Eric Wang',
-    desc: 'Scalable benchmarks and RL pipelines for multi-agent robot collaboration. Proposed grounded task generation for iterative creation and refinement.',
+    desc: 'Research in multimodal and agentic AI — embodied agents, language grounding, and reinforcement learning.',
     tag: 'Research',
     href: 'https://nlp.cs.ucsb.edu/',
   },
@@ -103,25 +103,21 @@ export default async function Home() {
       <section className="hero">
         <div className="hero-left">
           <p className="hero-eyebrow">
-            UCSB NLP Group &middot; Xin Eric Wang
+            UCSB &middot; Undergrad Researcher
           </p>
           <h1 className="hero-name">
-            Dylan Lu,
-            <br />
-            <em>grounding</em>
-            <br />
-            intelligence.
+            Dylan Lu.
           </h1>
           <p className="hero-desc">
-            I work on multi-agent collaboration and grounded task
-            generation &mdash; how robots learn to work together through
-            language and interaction.
+            I study how language models become{' '}
+            <em>agents</em> &mdash; systems that reason,
+            plan, and act in both virtual and physical environments.
           </p>
           <div className="hero-meta">
             {[
               ['Affiliation', 'UC Santa Barbara'],
               ['Program', 'CCS Computer Science'],
-              ['Focus', 'NLP, RL, Vision'],
+              ['Focus', 'NLP, RL, Agents'],
             ].map(([label, value]) => (
               <div key={label} className="hero-meta-item">
                 <span className="hero-meta-label">{label}</span>
@@ -143,6 +139,7 @@ export default async function Home() {
               className="hero-portrait"
             />
             <div className="hero-portrait-overlay" />
+            <div className="hero-portrait-dof" />
           </div>
         </div>
       </section>
@@ -165,11 +162,11 @@ export default async function Home() {
             <div className="about-text">
               <p>
                 Undergraduate at UC Santa Barbara (College of Creative
-                Studies), working with the UCSB NLP Group on scalable
-                benchmarks and RL pipelines for multi-agent robot
-                collaboration. My focus is grounded task generation &mdash;
-                iterative methods for creating and refining tasks that
-                connect language to physical environments.
+                Studies), working with the UCSB NLP Group under Xin Eric
+                Wang. My research interests span natural language
+                processing, computer vision, and reinforcement
+                learning &mdash; with an emphasis on multimodal and
+                agentic AI.
               </p>
               <p>
                 Previously ML compiler optimization at TetraMem and

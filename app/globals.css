@@ -70,7 +70,6 @@ body::before {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  mix-blend-mode: difference;
 }
 
 .nav-logo {
@@ -205,18 +204,13 @@ body::before {
 
 .hero-name {
   font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
-  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-size: clamp(3.5rem, 7.5vw, 6.5rem);
   font-weight: 300;
-  line-height: 1.05;
+  line-height: 1;
   letter-spacing: -0.02em;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   opacity: 0;
-  animation: fadeUp 0.8s ease 0.5s forwards;
-}
-
-.hero-name em {
-  font-style: italic;
-  color: #C75B3B;
+  animation: nameReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
 }
 
 .hero-desc {
@@ -226,6 +220,13 @@ body::before {
   color: #3A3A3A;
   opacity: 0;
   animation: fadeUp 0.8s ease 0.7s forwards;
+}
+
+.hero-desc em {
+  font-family: var(--font-cormorant), 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15em;
+  color: #C75B3B;
 }
 
 .hero-meta {
@@ -301,7 +302,6 @@ body::before {
 }
 
 /* ── Portrait ── */
-/* ── Portrait ── */
 .hero-portrait-wrap {
   position: absolute;
   inset: 0;
@@ -318,60 +318,103 @@ body::before {
 
 .hero-portrait {
   width: auto;
-  height: 130%;
-  margin-top: 12%;
+  height: 115%;
+  margin-top: 10%;
   max-width: 100%;
   object-fit: contain;
   position: relative;
   z-index: 1;
-  filter: saturate(0.65) contrast(1.15) brightness(0.9) sepia(0.1);
+  filter: saturate(0.8) contrast(1.1) brightness(0.88);
   opacity: 0;
-  animation: fadeIn 1.5s ease 0.5s forwards;
+  animation: portraitReveal 2s ease 0.5s forwards;
 }
 
-/* Warm gradient overlay on top of portrait */
+/* Gradient overlay — bottom fade + warm wash + lifted shadows */
 .hero-portrait-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    transparent 50%,
-    rgba(26, 26, 26, 0.6) 85%,
-    rgba(26, 26, 26, 0.95) 100%
-  );
   pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 0%, transparent 55%, rgba(26, 26, 26, 0.6) 85%, rgba(26, 26, 26, 0.95) 100%),
+    linear-gradient(155deg, rgba(199, 91, 59, 0.1) 0%, transparent 35%),
+    linear-gradient(180deg, rgba(35, 30, 28, 0.08) 0%, rgba(35, 30, 28, 0.08) 100%);
 }
 
-/* Vignette for depth */
-.hero-portrait-wrap::before {
+/* Film grain — analog texture over portrait */
+.hero-portrait-overlay::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+}
+
+/* Light leak — warm analog flare from upper edge */
+.hero-portrait-overlay::after {
+  content: '';
+  position: absolute;
+  top: -15%;
+  right: -5%;
+  width: 60%;
+  height: 55%;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 60% 30%,
+    rgba(212, 130, 106, 0.14) 0%,
+    rgba(199, 91, 59, 0.06) 40%,
+    transparent 70%
+  );
+  filter: blur(30px);
+}
+
+/* Depth-of-field — soft blur increasing toward bottom of frame */
+.hero-portrait-dof {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  z-index: 2;
+  pointer-events: none;
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+}
+
+/* Vignette — tighter focus on face */
+.hero-portrait-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -5%;
   z-index: 3;
   pointer-events: none;
   background: radial-gradient(
-    ellipse at 50% 45%,
-    transparent 35%,
-    rgba(26, 26, 26, 0.6) 100%
+    ellipse at 50% 40%,
+    transparent 30%,
+    rgba(26, 26, 26, 0.45) 65%,
+    rgba(26, 26, 26, 0.8) 100%
   );
 }
 
-/* Subtle warm rim light effect */
+/* Warm rim light — upper-left glow */
 .hero-portrait-wrap::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   background: radial-gradient(
-    ellipse at 25% 30%,
-    rgba(199, 91, 59, 0.15) 0%,
+    ellipse at 25% 25%,
+    rgba(199, 91, 59, 0.2) 0%,
     transparent 50%
   );
 }
-
-
 
 /* ── Section shared ── */
 .section {
@@ -798,6 +841,15 @@ body::before {
   100% { transform: translateX(100%); }
 }
 
+@keyframes portraitReveal {
+  0% { opacity: 0; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes nameReveal {
+  0% { opacity: 0; transform: translateY(12px); letter-spacing: 0.05em; }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: -0.02em; }
+}
 
 .reveal {
   opacity: 0;
@@ -822,7 +874,7 @@ body::before {
   .hero { grid-template-columns: 1fr; }
   .hero-left { padding: 7rem 1.5rem 3rem; min-height: 75vh; }
   .hero-left::after { display: none; }
-  .hero-name { font-size: clamp(2.5rem, 10vw, 3.5rem); }
+  .hero-name { font-size: clamp(2.8rem, 12vw, 4rem); }
   .hero-desc { font-size: 0.95rem; }
   .hero-meta { gap: 1.5rem; }
   .hero-right { height: 40vh; }
