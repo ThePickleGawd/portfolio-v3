@@ -36,6 +36,10 @@ export default function Nav() {
 
       {/* Mobile overlay — outside nav to avoid mix-blend-mode */}
       <div className={`nav-mobile${open ? ' open' : ''}`}>
+        <button className="nav-mobile-close" onClick={close} aria-label="Close menu">
+          <span />
+          <span />
+        </button>
         {links.map((label) => (
           <a
             key={label}
