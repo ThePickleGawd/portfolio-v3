@@ -1311,6 +1311,43 @@ body::before {
   .footer { padding: 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
 }
 
+/* ── Large screens ── */
+@media (min-width: 1440px) {
+  html { font-size: 17px; }
+
+  .section {
+    padding-left: max(5rem, calc((100vw - 1200px) / 2));
+    padding-right: max(5rem, calc((100vw - 1200px) / 2));
+  }
+
+  .contact-section {
+    padding-left: max(5rem, calc((100vw - 1200px) / 2));
+    padding-right: max(5rem, calc((100vw - 1200px) / 2));
+  }
+
+  .footer {
+    padding-left: max(5rem, calc((100vw - 1200px) / 2));
+    padding-right: max(5rem, calc((100vw - 1200px) / 2));
+  }
+
+  .section-number {
+    left: calc(max(5rem, (100vw - 1200px) / 2) - 2.5rem);
+  }
+
+  .hero-left {
+    padding-left: 10vw;
+  }
+}
+
+/* ── Extra-large screens ── */
+@media (min-width: 1920px) {
+  html { font-size: 18px; }
+
+  .hero-left {
+    padding-left: 14vw;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
   * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
