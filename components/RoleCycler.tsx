@@ -6,7 +6,7 @@ const roles = [
   { label: 'UCSB \u00b7 Undergrad Researcher', theme: 'ucsb' },
   { label: 'ChipAgents \u00b7 AI Research', theme: 'chipagents' },
   { label: 'Simular \u00b7 AI Research', theme: 'simular' },
-  // { label: 'NVIDIA · AI Research', theme: 'nvidia' },
+  { label: 'NVIDIA \u00b7 AI Research', theme: 'nvidia' },
 ]
 
 export default function RoleCycler() {

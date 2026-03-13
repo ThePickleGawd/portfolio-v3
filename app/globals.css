@@ -60,7 +60,7 @@
   --portrait-glow-opacity: 0.06;
 }
 
-/* [data-theme="nvidia"] {
+[data-theme="nvidia"] {
   --bg: #F2F2ED;           --bg-rgb: 242,242,237;
   --bg-alt: #E6E6E0;
   --dark: #111111;          --dark-rgb: 17,17,17;
@@ -71,7 +71,7 @@
   --text: #3A4A38;
   --portrait-tint-opacity: 0.08;
   --portrait-glow-opacity: 0.10;
-} */
+}
 
 /* ── Reset ── */
 * {

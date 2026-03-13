@@ -10,12 +10,20 @@ import { getRecentPosts } from '@/lib/blog'
 
 const experience = [
   {
-    date: 'Summer 2026',
+    date: 'Fall 2026',
     role: 'ML Research Intern',
     org: 'Simular \u00b7 Autonomous Computer Agents',
     desc: 'Building AI agents that autonomously operate computers and automate workflows across macOS, Windows, and Linux.',
     tag: 'Incoming',
     href: 'https://www.simular.ai/',
+  },
+  {
+    date: 'Summer 2026',
+    role: 'Machine Learning Intern',
+    org: 'NVIDIA',
+    desc: '',
+    tag: 'Incoming',
+    href: 'https://www.nvidia.com/',
   },
   {
     date: 'Spring 2026',
