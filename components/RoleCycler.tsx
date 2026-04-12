@@ -5,8 +5,7 @@ import { useState, useCallback, useEffect } from 'react'
 const roles = [
   { label: 'UCSB \u00b7 Undergrad Researcher', theme: 'ucsb' },
   { label: 'ChipAgents \u00b7 AI Research', theme: 'chipagents' },
-  { label: 'Simular \u00b7 AI Research', theme: 'simular' },
-  { label: 'NVIDIA \u00b7 AI Research', theme: 'nvidia' },
+{ label: 'NVIDIA \u00b7 AI Engineer', theme: 'nvidia' },
 ]
 
 export default function RoleCycler() {

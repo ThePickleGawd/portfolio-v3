@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 
-const links = ['About', 'Experience', 'Work', 'Publications', 'Contact']
+const links = ['Publications', 'Contact']
 
 export default function Nav() {
   const [open, setOpen] = useState(false)

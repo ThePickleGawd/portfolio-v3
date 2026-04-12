@@ -8,115 +8,26 @@ import { getRecentPosts } from '@/lib/blog'
  *  Data
  * ──────────────────────────────────────────────── */
 
-const experience = [
-  {
-    date: 'Fall 2026',
-    role: 'ML Research Intern',
-    org: 'Simular \u00b7 Autonomous Computer Agents',
-    desc: 'Building AI agents that autonomously operate computers and automate workflows across macOS, Windows, and Linux.',
-    tag: 'Incoming',
-    href: 'https://www.simular.ai/',
-  },
-  {
-    date: 'Summer 2026',
-    role: 'Machine Learning Intern',
-    org: 'NVIDIA',
-    desc: '',
-    tag: 'Incoming',
-    href: 'https://www.nvidia.com/',
-  },
-  {
-    date: 'Spring 2026',
-    role: 'ML Research Intern',
-    org: 'ChipAgents \u00b7 Agentic AI for Chip Design',
-    desc: 'Agentic AI platform automating semiconductor design and verification workflows.',
-    tag: 'Incoming',
-    href: 'https://chipagents.ai/',
-  },
-  {
-    date: 'Oct 2025 \u2014',
-    role: 'Undergraduate Researcher \u2014 NLP',
-    org: 'UCSB NLP Group \u00b7 Advisor: Xin Eric Wang',
-    desc: 'Research in multimodal and agentic AI — embodied agents, language grounding, and reinforcement learning.',
-    tag: 'Research',
-    href: 'https://nlp.cs.ucsb.edu/',
-  },
-  {
-    date: 'Jun \u2014 Sep 2025',
-    role: 'ML Engineer Intern',
-    org: 'TetraMem \u00b7 AI Chip Startup',
-    desc: 'Optimized Rust-based ML compiler: 16x faster depthwise convolutions, reduced compile time from 40 min to 2 sec. Built CI/CD pipeline and custom Halide C++ autoscheduler.',
-    tag: 'Industry',
-    href: 'https://www.tetramem.com/',
-  },
-  {
-    date: 'May \u2014 Aug 2022',
-    role: 'Software Engineering Intern',
-    org: 'Atmosic Technologies \u00b7 IoT Chip Startup',
-    desc: 'Developed C-based QA pipeline accelerating IoT testing 3\u00d7. Built Python benchmarking tools for energy efficiency profiling.',
-    tag: 'Industry',
-    href: 'https://atmosic.com/',
-  },
-]
-
-const projects = [
-  {
-    name: 'FaceTimeOS',
-    blurb:
-      'Computer-use AI agent enabling remote Mac control via FaceTime and iMessage with real-time speech interaction. Won 1st place among 695 projects at the world\u2019s largest collegiate hackathon (3,000+ participants).',
-    tags: ['Flask', 'React', 'Electron', 'Speech AI'],
-    award: 'Grand Prize \u2014 Cal Hacks 12.0',
-    href: 'https://github.com/ThePickleGawd/FaceTimeOS',
-    featured: true,
-  },
-  {
-    name: 'AI Agents for Geometry Dash',
-    blurb:
-      'Mixture-of-Experts DQN agent achieving 90% human-level completion with a real-time game interaction pipeline.',
-    tags: ['MoE DQN', 'OpenAI Gym', 'C++'],
-    eyebrow: 'Reinforcement Learning',
-    href: 'https://github.com/ThePickleGawd/geometry-dash-ai',
-  },
-  {
-    name: 'RAG Voice AI Agents',
-    blurb:
-      'On-device voice agent with <1 s speech latency and +12 point answer quality improvement via GraphRAG retrieval.',
-    tags: ['Voice LLM', 'LangChain', 'GraphRAG'],
-    eyebrow: 'Voice AI',
-    href: 'https://github.com/ThePickleGawd/realtime-speech-agents',
-  },
-  {
-    name: 'Baddy Buddy AI Coach',
-    blurb:
-      'Badminton coaching system with 94% tracking precision using ViT models, deployed to 15+ athletes for real-time strategy insights.',
-    tags: ['ViT', 'Next.js', 'Flask', 'Claude 3.5'],
-    award: '1st Place Entertainment \u2014 SBHacks',
-    href: 'https://github.com/ThePickleGawd',
-  },
-  {
-    name: 'SLAM-TT',
-    blurb:
-      'Video-to-3D scene reconstruction of ping pong games using SLAM. View real matches from any angle in 3D space.',
-    tags: ['PyTorch', 'OpenCV', 'SLAM'],
-    eyebrow: 'Computer Vision + 3D',
-    href: 'https://github.com/ThePickleGawd',
-  },
-]
-
 const publications = [
   {
     title: 'Context Rot Bench: Measuring User Constraint Adherence in Long-Horizon Agents',
-    authors: ['Dylan Lu*', 'Saaket Agashe', 'Xin Eric Wang'],
+    authors: ['Dylan Lu*', 'Surya Gunukula*', 'Saaket Agashe', 'Tengxiao Liu', 'Kexun Zhang', 'Xin Eric Wang'],
     venue: 'TBD',
     year: '2026',
-    status: 'in progress',
+    thumbnail: '/pub-default.jpeg',
+    links: [],
   },
   {
     title: 'EmToM: Embodied Agent Theory of Mind Evaluation Benchmark',
-    authors: ['Gurusha Juneja', 'Dylan Lu', 'Saaket Agashe', 'Parth Diwane', 'Xin Eric Wang'],
+    authors: ['Gurusha Juneja', 'Dylan Lu', 'Saaket Agashe', 'Parth Diwane', 'Edward Gunn', 'Jayanth Srinivasa', 'Gaowen Liu', 'William Yang Wang', 'Yali Du', 'Xin Eric Wang'],
     venue: 'TBD',
     year: '2026',
-    status: 'in progress',
+    thumbnail: 'https://emtom-bench.github.io/static/images/teaser.png',
+    href: 'https://emtom-bench.github.io/',
+    links: [
+      { label: 'Code', url: 'https://github.com/ThePickleGawd/Partnr-EmToM' },
+      { label: 'Website', url: 'https://emtom-bench.github.io/' },
+    ],
   },
 ]
 
@@ -136,21 +47,29 @@ export default async function Home() {
       <section className="hero">
         <div className="hero-left">
           <RoleCycler />
-          <p className="hero-desc">
-            I research AI agents, long-horizon reasoning,
-            multi-agent collaboration, and reinforcement learning.
-          </p>
-          <div className="hero-meta">
-            {[
-              ['Affiliation', 'UC Santa Barbara'],
-              ['Program', 'CCS Computer Science'],
-              ['Focus', 'NLP, RL, Agents'],
-            ].map(([label, value]) => (
-              <div key={label} className="hero-meta-item">
-                <span className="hero-meta-label">{label}</span>
-                <span className="hero-meta-value">{value}</span>
-              </div>
-            ))}
+          <div className="hero-bio">
+            <p>
+              I am an undergraduate at UC Santa Barbara advised by{' '}
+              <a href="https://eric-xw.github.io/" target="_blank" rel="noopener noreferrer" className="hero-link">Xin Eric Wang</a> in the{' '}
+              <a href="http://nlp.cs.ucsb.edu/" target="_blank" rel="noopener noreferrer" className="hero-link">UCSB NLP Group</a>.
+            </p>
+            <p>
+              I won 1st place grand prize at{' '}
+              <a href="https://devpost.com/software/facetime-macos-ai-agent" target="_blank" rel="noopener noreferrer" className="hero-link">Cal Hacks</a>,
+              and will be joining{' '}
+              <a href="https://www.nvidia.com/en-us/ai-data-science/foundation-models/nemotron/" target="_blank" rel="noopener noreferrer" className="hero-link">NVIDIA</a> on the post-training team.
+            </p>
+            <div className="hero-socials">
+              <a href="https://github.com/ThePickleGawd" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              </a>
+              <a href="https://www.linkedin.com/in/dylanelu/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              </a>
+              <span className="hero-social-icon disabled" aria-label="Google Scholar">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 100 14 7 7 0 000-14z"/></svg>
+              </span>
+            </div>
           </div>
           <div className="hero-scroll">
             <div className="hero-scroll-line" />
@@ -163,144 +82,12 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── About ── */}
-      <section id="about" className="about section">
-        <span className="section-number">01</span>
-        <ScrollReveal>
-          <div className="section-label">About</div>
-        </ScrollReveal>
-        <ScrollReveal>
-          <h2 className="section-title">
-            Things I
-            <br />
-            work on.
-          </h2>
-        </ScrollReveal>
-        <div className="about-grid">
-          <ScrollReveal>
-            <div className="about-text">
-              <p>
-                Undergraduate at UC Santa Barbara{' '}
-                (<a href="https://ccs.ucsb.edu/majors/computing" target="_blank" rel="noopener noreferrer" className="about-link">College of Creative Studies</a>),
-                working with the{' '}
-                <a href="http://nlp.cs.ucsb.edu/" target="_blank" rel="noopener noreferrer" className="about-link">UCSB NLP Group</a> under{' '}
-                <a href="https://eric-xw.github.io/" target="_blank" rel="noopener noreferrer" className="about-link">Xin Eric Wang</a>.
-                I work on AI agents, long-horizon planning, and
-                multi-agent collaboration.
-              </p>
-              <p>
-                I also won the grand prize at{' '}
-                <a href="https://calhacks.io/" target="_blank" rel="noopener noreferrer" className="about-link">Cal Hacks</a>,
-                the world&rsquo;s largest collegiate hackathon.
-              </p>
-            </div>
-          </ScrollReveal>
-          <ScrollReveal>
-            <div className="about-stats">
-              {[
-                ['1st Place', 'Grand Prize · Cal Hacks'],
-                ['4.0', 'GPA'],
-              ].map(([num, label]) => (
-                <div key={label} className="stat">
-                  <div className="stat-number">{num}</div>
-                  <div className="stat-label">{label}</div>
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ── Experience ── */}
-      <section id="experience" className="section">
-        <span className="section-number">02</span>
-        <ScrollReveal>
-          <div className="section-label">Experience</div>
-        </ScrollReveal>
-        <ScrollReveal>
-          <h2 className="section-title">
-            Research and
-            <br />
-            industry.
-          </h2>
-        </ScrollReveal>
-        <div style={{ marginTop: '1rem' }}>
-          {experience.map((exp) => (
-            <ScrollReveal key={exp.org}>
-              <a
-                href={exp.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="exp-item"
-              >
-                <span className="exp-date">{exp.date}</span>
-                <div>
-                  <div className="exp-role">{exp.role}</div>
-                  <div className="exp-org">{exp.org}</div>
-                  <div className="exp-desc">{exp.desc}</div>
-                </div>
-                <span className="exp-tag">{exp.tag}</span>
-              </a>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Projects ── */}
-      <section id="work" className="projects-section section">
-        <span className="section-number">03</span>
-        <ScrollReveal>
-          <div className="section-label">Selected Work</div>
-        </ScrollReveal>
-        <ScrollReveal>
-          <h2 className="section-title">
-            Projects and
-            <br />
-            hackathons.
-          </h2>
-        </ScrollReveal>
-        <div className="project-grid">
-          {projects.map((project) => (
-            <ScrollReveal key={project.name}>
-              <a
-                href={project.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`project-card${
-                  project.featured ? ' featured' : ''
-                }`}
-              >
-                <div>
-                  {project.award && (
-                    <div className="project-award">
-                      &#9733; {project.award}
-                    </div>
-                  )}
-                  {project.eyebrow && (
-                    <div className="project-eyebrow">{project.eyebrow}</div>
-                  )}
-                  <div className="project-name">{project.name}</div>
-                  <p className="project-blurb">{project.blurb}</p>
-                  <div className="project-tags">
-                    {project.tags.map((tag) => (
-                      <span key={tag} className="project-tag">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </a>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
-
       {/* ── Publications ── */}
       <section
         id="publications"
         className="section bg-alt"
       >
-        <span className="section-number">04</span>
+        <span className="section-number">01</span>
         <ScrollReveal>
           <div className="section-label">Publications</div>
         </ScrollReveal>
@@ -311,49 +98,64 @@ export default async function Home() {
             worked on.
           </h2>
         </ScrollReveal>
-        <div style={{ maxWidth: 700 }}>
-          {publications.map((pub) => (
+        <div className="pub-list">
+          {publications.map((pub) => {
+            const hasLinks = pub.links && pub.links.length > 0
+            const Tag = pub.href && !hasLinks ? 'a' : 'div'
+            const linkProps = pub.href && !hasLinks ? { href: pub.href, target: '_blank', rel: 'noopener noreferrer' } : {}
+            return (
             <ScrollReveal key={pub.title}>
-              <div className="pub-item">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    gap: '1.5rem',
-                  }}
-                >
-                  <div>
-                    <div className="pub-title">{pub.title}</div>
-                    <div className="pub-authors">
-                      {pub.authors.map((author, i) => (
-                        <span key={author}>
-                          {author.startsWith('Dylan Lu') ? (
-                            <strong>{author}</strong>
-                          ) : (
-                            author
-                          )}
-                          {i < pub.authors.length - 1 && ', '}
-                        </span>
+              <Tag className="pub-item" {...linkProps}>
+                {pub.thumbnail && (
+                  <div className="pub-thumb">
+                    <img src={pub.thumbnail} alt="" />
+                  </div>
+                )}
+                <div className="pub-info">
+                  <div className="pub-title">{pub.title}</div>
+                  <div className="pub-authors">
+                    {pub.authors.map((author, i) => (
+                      <span key={author}>
+                        {author.startsWith('Dylan Lu') ? (
+                          <strong>{author}</strong>
+                        ) : (
+                          author
+                        )}
+                        {i < pub.authors.length - 1 && ', '}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="pub-meta">
+                    <span className="pub-venue">
+                      {pub.venue}, {pub.year}
+                    </span>
+                  </div>
+                  {pub.links && pub.links.length > 0 && (
+                    <div className="pub-links">
+                      {pub.links.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="pub-link-btn"
+                        >
+                          {link.label}
+                        </a>
                       ))}
                     </div>
-                    <div className="pub-venue">
-                      {pub.venue}, {pub.year}
-                    </div>
-                  </div>
-                  {pub.status && (
-                    <span className="pub-status">{pub.status}</span>
                   )}
                 </div>
-              </div>
+              </Tag>
             </ScrollReveal>
-          ))}
+            )
+          })}
         </div>
       </section>
 
       {/* ── Blog ── */}
       <section className="section">
-        <span className="section-number">05</span>
+        <span className="section-number">02</span>
         <ScrollReveal>
           <div className="section-label">Writing</div>
         </ScrollReveal>
