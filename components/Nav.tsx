@@ -2,7 +2,11 @@
 
 import { useState, useCallback } from 'react'
 
-const links = ['Publications', 'Contact']
+const links = [
+  { label: 'Publications', href: '#publications' },
+  { label: 'Resume', href: 'https://flowcv.com/resume/wvn6su5ue1' },
+  { label: 'Contact', href: '#contact' },
+]
 
 export default function Nav() {
   const [open, setOpen] = useState(false)
@@ -14,9 +18,14 @@ export default function Nav() {
       <nav className="nav">
         {/* Desktop links */}
         <ul className="nav-links">
-          {links.map((label) => (
-            <li key={label}>
-              <a href={`#${label.toLowerCase()}`}>{label}</a>
+          {links.map((link) => (
+            <li key={link.label}>
+              <a
+                href={link.href}
+                {...(link.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              >
+                {link.label}
+              </a>
             </li>
           ))}
         </ul>
@@ -40,13 +49,14 @@ export default function Nav() {
           <span />
           <span />
         </button>
-        {links.map((label) => (
+        {links.map((link) => (
           <a
-            key={label}
-            href={`#${label.toLowerCase()}`}
+            key={link.label}
+            href={link.href}
             onClick={close}
+            {...(link.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
           >
-            {label}
+            {link.label}
           </a>
         ))}
       </div>
