@@ -18,15 +18,15 @@ const publications = [
     links: [],
   },
   {
-    title: 'EmToM: Embodied Agent Theory of Mind Evaluation Benchmark',
+    title: 'EnactToM: An Evolving Benchmark for Functional Theory of Mind in Embodied Agents',
     authors: ['Gurusha Juneja', 'Dylan Lu', 'Saaket Agashe', 'Parth Diwane', 'Edward Gunn', 'Jayanth Srinivasa', 'Gaowen Liu', 'William Yang Wang', 'Yali Du', 'Xin Eric Wang'],
     venue: 'TBD',
     year: '2026',
-    thumbnail: 'https://emtom-bench.github.io/static/images/teaser.png',
-    href: 'https://emtom-bench.github.io/',
+    thumbnail: 'https://enact-tom.github.io/static/images/main_figure.png',
+    href: 'https://enact-tom.github.io/',
     links: [
-      { label: 'Code', url: 'https://github.com/ThePickleGawd/Partnr-EmToM' },
-      { label: 'Website', url: 'https://emtom-bench.github.io/' },
+      { label: 'Code', url: 'https://github.com/ThePickleGawd/EnactTom' },
+      { label: 'Website', url: 'https://enact-tom.github.io/' },
     ],
   },
 ]
