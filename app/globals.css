@@ -1073,14 +1073,14 @@ body::before {
   display: grid;
   grid-template-columns: 150px 1fr;
   gap: 1.5rem;
-  align-items: center;
+  align-items: start;
 }
 
 a.pub-item { text-decoration: none; color: inherit; }
 
 .pub-thumb {
   width: 150px;
-  align-self: stretch;
+  aspect-ratio: 1 / 1;
   border-radius: 8px;
   overflow: hidden;
   background: rgba(var(--muted-rgb), 0.1);
