@@ -84,6 +84,7 @@ const jsonLd = {
   sameAs: [
     'https://github.com/ThePickleGawd',
     'https://www.linkedin.com/in/dylanelu/',
+    'https://scholar.google.com/citations?user=haBtTw8AAAAJ&hl=en',
     'https://blog.dylanlu.com',
     'https://www.instagram.com/_dylan_lu/',
     'https://flowcv.com/resume/wvn6su5ue1',
