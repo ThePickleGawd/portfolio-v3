@@ -25,6 +25,7 @@ const publications = [
     thumbnail: 'https://enact-tom.github.io/static/images/main_figure.png',
     href: 'https://enact-tom.github.io/',
     links: [
+      { label: 'Paper', url: 'https://arxiv.org/abs/2605.09826' },
       { label: 'Code', url: 'https://github.com/ThePickleGawd/EnactTom' },
       { label: 'Website', url: 'https://enact-tom.github.io/' },
     ],
