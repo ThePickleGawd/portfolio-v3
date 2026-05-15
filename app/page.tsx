@@ -204,7 +204,6 @@ export default async function Home() {
           {[
             ['LinkedIn', 'https://www.linkedin.com/in/dylanelu/'],
             ['GitHub', 'https://github.com/ThePickleGawd'],
-            ['Google Scholar', googleScholarUrl],
             ['Resume', 'https://flowcv.com/resume/wvn6su5ue1'],
           ].map(([label, href]) => (
             <a
